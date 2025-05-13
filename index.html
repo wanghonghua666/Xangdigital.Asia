@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>XANGDIGITAL.ASIA</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'JetBrains Mono', monospace;
+      background-color: black;
+      color: white;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .text-tc {
+      font-family: 'Noto Sans TC', sans-serif;
+      letter-spacing: 0.05em;
+    }
+
+    .background-image {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      width: 100vw;
+      height: 100vh;
+      background-image: url('./header-image.jpg');
+      background-size: 100% 100%;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .content {
+      position: relative;
+      z-index: 20;
+      min-height: 100vh;
+    }
+
+    header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 50;
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem;
+    }
+
+    @media (min-width: 768px) {
+      nav {
+        padding: 1.5rem;
+      }
+    }
+
+    .site-title {
+      font-size: 2rem;
+      letter-spacing: 0.05em;
+      color: #FF0000;
+    }
+
+    .desktop-nav {
+      display: none;
+    }
+
+    @media (min-width: 768px) {
+      .desktop-nav {
+        display: flex;
+        gap: 2rem;
+      }
+    }
+
+    .nav-button {
+      background: none;
+      border: none;
+      color: #FF0000;
+      font-family: inherit;
+      font-size: 1rem;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+
+    .nav-button:hover {
+      color: rgba(255, 0, 0, 0.7);
+    }
+
+    .mobile-menu-button {
+      background: none;
+      border: none;
+      color: #FF0000; /* 改为红色 */
+      cursor: pointer;
+      display: block;
+      font-size: 1.5rem;
+    }
+
+    @media (min-width: 768px) {
+      .mobile-menu-button {
+        display: none;
+      }
+    }
+
+    .mobile-menu {
+      position: fixed;
+      inset: 0;
+      background-color: rgba(0, 0, 0, 0.95);
+      backdrop-filter: blur(4px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2rem;
+      transform: translateX(100%);
+      transition: transform 0.5s;
+      z-index: 100;
+    }
+
+    .mobile-menu.open {
+      transform: translateX(0);
+    }
+
+    main {
+      padding-top: 6rem;
+      padding-left: 1rem;
+      padding-right: 1rem;
+      max-width: 72rem;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    @media (min-width: 768px) {
+      main {
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+      }
+    }
+
+    .work-section {
+      display: grid;
+      gap: 3rem;
+    }
+
+    @media (min-width: 768px) {
+      .work-section {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 4rem;
+      }
+    }
+
+    .section-title {
+      font-size: 2.25rem;
+      letter-spacing: 0.05em;
+      color: #FF0000;
+      text-align: center;
+      margin-bottom: 3rem;
+      grid-column: span 2;
+    }
+
+    .product-link {
+      display: block;
+      width: 80%;
+      margin-left: auto;
+      margin-right: auto;
+      cursor: pointer;
+      opacity: 0;
+      animation: fadeIn 1.5s ease-out forwards;
+      transition: all 0.5s ease;
+    }
+
+    .product-link:nth-child(3) {
+      animation-delay: 0.5s;
+    }
+
+    .product-link.clicked {
+      z-index: 30;
+    }
+
+    .product-container {
+      position: relative;
+      aspect-ratio: 1 / 1;
+      overflow: visible;
+    }
+
+    .product-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.5s;
+    }
+
+    .product-link:hover .product-image {
+      transform: scale(1.1);
+    }
+
+    footer {
+      margin-top: 6rem;
+      margin-bottom: 3rem;
+      display: flex;
+      flex-direction: column;
+      gap: 4rem;
+    }
+
+    .about-section {
+      padding-top: 4rem;
+      transition: opacity 0.5s ease;
+    }
+
+    .about-content {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    .about-text {
+      color: rgb(156, 163, 175);
+      letter-spacing: 0.05em;
+      font-size: 1.125rem;
+    }
+
+    .contact-section {
+      padding-top: 4rem;
+      transition: opacity 0.5s ease;
+    }
+
+    .contact-container {
+      background-color: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(4px);
+      border-radius: 0.5rem;
+      padding: 2rem;
+    }
+
+    .contact-title {
+      font-size: 1.875rem;
+      letter-spacing: 0.05em;
+      color: #FF0000;
+      text-align: center;
+      margin-bottom: 3rem;
+      text-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+    }
+
+    .social-links {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 3rem;
+    }
+
+    .social-link {
+      transition: transform 0.3s;
+    }
+
+    .social-link:hover {
+      transform: scale(1.1);
+    }
+
+    .social-icon {
+      height: 3rem;
+      width: auto;
+    }
+
+    .apple-music-icon {
+      height: 4rem;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* 产品详情页的淡入动画 */
+    .product-layout {
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeInProduct 0.5s ease forwards;
+    }
+
+    @keyframes fadeInProduct {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Background Image -->
+  <div class="background-image"></div>
+
+  <!-- Semi-transparent overlay -->
+  <div class="overlay"></div>
+
+  <div class="content">
+    <!-- Header -->
+    <header>
+      <nav>
+        <h1 class="site-title">XANGDIGITAL.ASIA</h1>
+        <div class="desktop-nav">
+          <button class="nav-button" onclick="scrollToSection('work')">WORK</button>
+          <button class="nav-button" onclick="scrollToSection('about')">ABOUT</button>
+          <button class="nav-button" onclick="scrollToSection('contact')">AVAILABLE IN</button>
+        </div>
+        <button class="mobile-menu-button" onclick="toggleMenu()">☰</button>
+      </nav>
+
+      <!-- Mobile Menu -->
+      <div class="mobile-menu" id="mobile-menu">
+        <button class="nav-button" onclick="scrollToSection('work'); toggleMenu()">WORK</button>
+        <button class="nav-button" onclick="scrollToSection('about'); toggleMenu()">ABOUT</button>
+        <button class="nav-button" onclick="scrollToSection('contact'); toggleMenu()">AVAILABLE IN</button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+      <!-- Products Grid -->
+      <section id="work" class="work-section">
+        <h2 class="section-title">WORK</h2>
+        
+        <!-- ILOVEITWHENSHERIDEONME -->
+        <a href="./product-iloveitwhensherideonme.html" class="product-link" 
+           onclick="handleProductClick(event, './product-iloveitwhensherideonme.html')">
+          <div class="product-container">
+            <img src="./album-art.png" alt="ILOVEITWHENSHERIDEONME" class="product-image">
+          </div>
+        </a>
+
+        <!-- Oshamambe -->
+        <a href="./product-oshamambe.html" class="product-link"
+           onclick="handleProductClick(event, './product-oshamambe.html')">
+          <div class="product-container">
+            <img src="./album-cover.png" alt="Oshamambe" class="product-image">
+          </div>
+        </a>
+      </section>
+
+      <!-- Footer -->
+      <footer>
+        <section id="about" class="about-section">
+          <h3 class="section-title">ABOUT</h3>
+          <div class="about-content">
+            <p class="about-text">Xangdigital, based in Tokyo, creates music.</p>
+
+            <p class="about-text text-tc">
+              社會塑造個體，道德、羞恥感、群體認同成為束縛。音樂是反作用力，打破邊界，呈現未經雕琢的狀態。創作追求原生，不加修飾，粗礪，無虛假。自然與光是根基，陽光賦予生命，映照萬物，世界由此可感。音樂承載光的質感，純粹而有力。
+            </p>
+
+            <p class="about-text">
+              Society shapes individuals. Morality, shame, and collective identity become restraints. Music is a
+              counterforce, breaking boundaries and revealing an unpolished state. Creation is raw, untouched,
+              unfiltered—it can be rough, but never fake. Nature and light are the foundation. Sunlight gives life,
+              reveals form, and makes the world perceptible. Music carries its essence—pure and powerful.
+            </p>
+          </div>
+        </section>
+        
+        <section id="contact" class="contact-section">
+          <div class="contact-container">
+            <h3 class="contact-title">AVAILABLE IN</h3>
+            <div class="social-links">
+              <a
+                href="https://open.spotify.com/artist/5MK725n9nD9zJvT4gB6T9m"
+                target="_blank"
+                class="social-link"
+                rel="noreferrer"
+              >
+                <img
+                  src="./spotify-logo.png"
+                  alt="Spotify"
+                  class="social-icon"
+                >
+              </a>
+              <a
+                href="https://www.youtube.com/channel/UCAcLZb24tL1RI172QHULR3g"
+                target="_blank"
+                class="social-link"
+                rel="noreferrer"
+              >
+                <img
+                  src="./youtube-logo.png"
+                  alt="YouTube"
+                  class="social-icon"
+                >
+              </a>
+              <a
+                href="https://music.apple.com/us/artist/xang-digital/1772933469"
+                target="_blank"
+                class="social-link"
+                rel="noreferrer"
+              >
+                <img
+                  src="./apple-music-logo.png"
+                  alt="Apple Music"
+                  class="social-icon apple-music-icon"
+                >
+              </a>
+              <a
+                href="https://www.instagram.com/djxan_g/"
+                target="_blank"
+                class="social-link"
+                rel="noreferrer"
+              >
+                <img
+                  src="./image.png"
+                  alt="Instagram"
+                  class="social-icon"
+                >
+              </a>
+            </div>
+          </div>
+        </section>
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    // Mobile menu toggle
+    function toggleMenu() {
+      const mobileMenu = document.getElementById('mobile-menu');
+      mobileMenu.classList.toggle('open');
+    }
+
+    // Smooth scroll to section
+    function scrollToSection(sectionId) {
+      const element = document.getElementById(sectionId);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+
+    // Product details (placeholder function)
+    function showProductDetails(productId) {
+      // In a real implementation, this would navigate to a product page
+      // For now, we'll just prevent the default link behavior
+      event.preventDefault();
+      
+      // You could implement a modal or redirect here
+      console.log(`Show details for product: ${productId}`);
+      
+      // Example alert for demonstration
+      alert(`Product: ${productId}\nThis would navigate to the product details page in a full implementation.`);
+    }
+
+    // 添加新的过渡动画处理函数
+    function handleProductClick(event, productUrl) {
+      event.preventDefault();
+      
+      // 获取要淡出的元素
+      const allContent = document.querySelectorAll('.work-section, .about-section, .contact-section, .desktop-nav, .mobile-menu-button');
+      
+      // 淡出所有内容
+      allContent.forEach(element => {
+        element.style.opacity = '0';
+        element.style.transition = 'opacity 0.5s ease';
+      });
+      
+      // 等待淡出完成后跳转
+      setTimeout(() => {
+        sessionStorage.setItem('transition', 'true');
+        window.location.href = productUrl;
+      }, 500);
+    }
+  </script>
+  <script>
+    // 在body结束标签前添加此脚本
+    window.onload = function() {
+      // 检查URL是否包含back参数
+      const urlParams = new URLSearchParams(window.location.search);
+      const isBack = urlParams.get('back');
+      
+      if (isBack) {
+        // 如果是从back按钮返回，移除动画
+        document.querySelectorAll('.product-link').forEach(link => {
+          link.style.animation = 'none';
+          link.style.opacity = '1';
+        });
+      }
+    }
+  </script>
+</body>
+</html>
