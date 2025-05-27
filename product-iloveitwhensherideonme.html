@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!-- Apple Touch Icon -->
+<link rel="apple-touch-icon" href="favicon.png">
+<!-- Android Chrome Icon -->
+<link rel="icon" sizes="192x192" href="favicon.png">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ILOVEITWHENSHERIDEONME - XANGDIGITAL.ASIA</title>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
   <style>
-    /* 复用index.html的基础样式 */
     body {
       font-family: 'JetBrains Mono', monospace;
       background-color: black;
@@ -39,6 +42,17 @@
       position: relative;
       z-index: 20;
       min-height: 100vh;
+      opacity: 1;
+      transform: translateY(0);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+
+    /* 添加淡出动画类 */
+    .fade-out {
+      opacity: 0;
+      transform: translateY(-20px);
+      pointer-events: none;
+      transition: opacity 0.5s ease, transform 0.5s ease;
     }
 
     /* Header styles */
@@ -78,8 +92,8 @@
       font-family: inherit;
       font-size: 1rem;
       cursor: pointer;
-      transition: all 0.3s;
-      opacity: 0;
+      transition: opacity 0.3s ease, transform 0.3s ease, background 0.3s ease, color 0.3s ease;
+      opacity: 1; /* 這裡改為1 */
       animation: fadeIn 0.5s ease 0.3s forwards;
     }
 
@@ -100,16 +114,18 @@
       align-items: center;
     }
 
+    /* 修改 product-layout 样式 */
     .product-layout {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 4rem;
       align-items: start;
-      opacity: 0;
-      transform: translateY(20px);
+      opacity: 1;
+      transform: translateY(0);
       animation: fadeIn 0.5s ease forwards;
       max-width: 72rem;
       margin: 0 auto;
+      transition: opacity 0.5s ease, transform 0.5s ease; /* 明确指定过渡属性 */
     }
 
     @keyframes fadeIn {
@@ -120,7 +136,7 @@
     }
 
     .product-image {
-      width: 50%;
+      width: 80%;
       height: auto;
       margin: 0 auto;
       display: block;
@@ -193,7 +209,7 @@
     <header>
       <nav>
         <h1 class="site-title">XANGDIGITAL.ASIA</h1>
-        <button class="back-button" onclick="window.location.href='index.html?back=true'">← Back</button>
+        <button class="back-button">← Back</button>
       </nav>
     </header>
 
@@ -219,9 +235,39 @@
   </div>
 
   <script>
+    // Purchase function
     function initiatePurchase(type) {
-      console.log(`Initiating ${type} purchase`);
+        console.log(`Initiating ${type} purchase`);
     }
+
+    // Back button animation
+    document.addEventListener('DOMContentLoaded', function() {
+    const backButton = document.querySelector('.back-button');
+    const productLayout = document.querySelector('.product-layout');
+
+    // 监听动画结束，移除 animation 属性
+    productLayout.addEventListener('animationend', function() {
+        productLayout.style.animation = 'none';
+    });
+    backButton.addEventListener('animationend', function() {
+        backButton.style.animation = 'none';
+    });
+
+    backButton.addEventListener('click', function(e) {
+        e.preventDefault();
+        this.disabled = true;
+        this.style.opacity = '0';
+        this.style.transform = 'translateY(-20px)';
+
+        setTimeout(() => {
+            productLayout.style.opacity = '0';
+            productLayout.style.transform = 'translateY(-20px)';
+            setTimeout(() => {
+                window.location.href = 'index.html?back=true';
+            }, 600);
+        }, 300);
+    });
+});
   </script>
 </body>
 </html>

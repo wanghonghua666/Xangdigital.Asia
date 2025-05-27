@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!-- Apple Touch Icon -->
+  <link rel="apple-touch-icon" href="favicon.png">
+  <!-- Android Chrome Icon -->
+  <link rel="icon" sizes="192x192" href="favicon.png">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Oshamambe - XANGDIGITAL.ASIA</title>
@@ -38,8 +42,20 @@
       position: relative;
       z-index: 20;
       min-height: 100vh;
+      opacity: 1;
+      transform: translateY(0);
+      transition: opacity 0.5s ease, transform 0.5s ease;
     }
 
+    /* 添加淡出动画类 */
+    .fade-out {
+      opacity: 0;
+      transform: translateY(-20px);
+      pointer-events: none;
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+
+    /* Header styles */
     header {
       position: fixed;
       top: 0;
@@ -49,12 +65,17 @@
     }
 
     nav {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1rem;
-}
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem;
+    }
 
+    @media (min-width: 768px) {
+      nav {
+        padding: 1.5rem;
+      }
+    }
 
     .site-title {
       font-size: 2rem;
@@ -71,7 +92,9 @@
       font-family: inherit;
       font-size: 1rem;
       cursor: pointer;
-      transition: all 0.3s;
+      transition: opacity 0.3s ease, transform 0.3s ease, background 0.3s ease, color 0.3s ease;
+      opacity: 1;
+      animation: fadeIn 0.5s ease 0.3s forwards;
     }
 
     .back-button:hover {
@@ -79,25 +102,30 @@
       color: black;
     }
 
+    /* Product styles */
     main {
       padding-top: 6rem;
-      width: 100%;
-      max-width: 72rem;
-      margin: 0 auto;
       padding-left: 1.5rem;
       padding-right: 1.5rem;
-      box-sizing: border-box;
+      max-width: 72rem;
+      margin: 0 auto;
+      min-height: calc(100vh - 6rem);
+      display: flex;
+      align-items: center;
     }
 
+    /* 修改 product-layout 样式 */
     .product-layout {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 4rem;
       align-items: start;
-      opacity: 0;
-      transform: translateY(20px);
+      opacity: 1;
+      transform: translateY(0);
       animation: fadeIn 0.5s ease forwards;
-      width: 100%;
+      max-width: 72rem;
+      margin: 0 auto;
+      transition: opacity 0.5s ease, transform 0.5s ease;
     }
 
     @keyframes fadeIn {
@@ -108,13 +136,14 @@
     }
 
     .product-image {
-      width: 75%;
+      width: 80%;
       height: auto;
       margin: 0 auto;
       display: block;
     }
 
     .product-info {
+      position: relative;
       padding-top: 2rem;
     }
 
@@ -152,6 +181,7 @@
       opacity: 0.8;
     }
 
+    /* 响应式调整 */
     @media (max-width: 768px) {
       .product-layout {
         grid-template-columns: 1fr;
@@ -170,17 +200,20 @@
   </style>
 </head>
 <body>
+  <!-- Background Image -->
   <div class="background-image"></div>
   <div class="overlay"></div>
 
   <div class="content">
+    <!-- Header -->
     <header>
       <nav>
         <h1 class="site-title">XANGDIGITAL.ASIA</h1>
-        <button class="back-button" onclick="window.location.href='index.html?back=true'">← Back</button>
+        <button class="back-button">← Back</button>
       </nav>
     </header>
 
+    <!-- Main Content -->
     <main>
       <div class="product-layout">
         <img src="./album-cover.png" alt="Oshamambe" class="product-image">
@@ -201,9 +234,39 @@
   </div>
 
   <script>
+    // Purchase function
     function initiatePurchase(type) {
-      console.log(`Initiating ${type} purchase`);
+        console.log(`Initiating ${type} purchase`);
     }
+
+    // Back button animation
+    document.addEventListener('DOMContentLoaded', function() {
+    const backButton = document.querySelector('.back-button');
+    const productLayout = document.querySelector('.product-layout');
+
+    // 监听动画结束，移除 animation 属性
+    productLayout.addEventListener('animationend', function() {
+        productLayout.style.animation = 'none';
+    });
+    backButton.addEventListener('animationend', function() {
+        backButton.style.animation = 'none';
+    });
+
+    backButton.addEventListener('click', function(e) {
+        e.preventDefault();
+        this.disabled = true;
+        this.style.opacity = '0';
+        this.style.transform = 'translateY(-20px)';
+
+        setTimeout(() => {
+            productLayout.style.opacity = '0';
+            productLayout.style.transform = 'translateY(-20px)';
+            setTimeout(() => {
+                window.location.href = 'index.html?back=true';
+            }, 600);
+        }, 300);
+    });
+});
   </script>
 </body>
 </html>
