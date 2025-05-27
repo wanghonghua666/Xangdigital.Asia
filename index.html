@@ -23,6 +23,10 @@
       color: white;
       min-height: 100vh;
       overflow-x: hidden;
+      background-image: url('./header-image.jpg');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
     }
 
     .text-tc {
@@ -46,7 +50,8 @@
       position: fixed;
       inset: 0;
       z-index: 10;
-      background-color: rgba(0, 0, 0, 0.5);
+      background-color: rgba(0,0,0,0.5);
+      pointer-events: none;
     }
 
     .content {
@@ -312,8 +317,6 @@
   </style>
 </head>
 <body>
-  <!-- Background Image -->
-  <div class="background-image"></div>
 
   <!-- Semi-transparent overlay -->
   <div class="overlay"></div>
