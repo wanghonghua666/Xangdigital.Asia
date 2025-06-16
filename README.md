@@ -1,2 +1,0 @@
-# Xangdigital.Asia
-Xangdigital.Asia
