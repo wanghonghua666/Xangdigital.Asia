@@ -1,11 +1,11 @@
 /* === Global Styles === */
 
-.wrapper { 
+.wrapper {
   position: relative;
   min-height: 100vh;
-  background: url('/header-image.jpg') no-repeat center top;
+  background: url("/header-image.jpg") no-repeat center top;
   background-size: 101% 100.5%;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: "JetBrains Mono", monospace;
   overflow-x: hidden;
 }
 
@@ -83,7 +83,7 @@
   max-width: 700px;
   margin: 3rem auto 2rem auto;
   padding: 0;
-  color: red; 
+  color: red;
   border-radius: 12px;
 }
 
@@ -121,7 +121,6 @@
   will-change: transform, opacity, filter;
 }
 
-
 /* === Product Cards === */
 
 .productContainer {
@@ -146,12 +145,13 @@
   max-width: 1000px;
   margin: 3rem auto 2rem auto;
   padding: 0.1rem;
-  color: red; 
+  color: red;
   border-radius: 12px;
 }
 
-.aboutText, .aboutEText {
-  font-family: 'Noto Sans TC', sans-serif;
+.aboutText,
+.aboutEText {
+  font-family: "Noto Sans TC", sans-serif;
   color: rgba(255, 255, 255, 0.7);
   text-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
   letter-spacing: 0.01rem;
@@ -161,14 +161,14 @@
 }
 
 .aboutEText {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: "JetBrains Mono", monospace;
 }
 
 /* === Contact Section === */
 
 .contactSection {
   margin-top: 3rem;
-  
+
   border-radius: 3px;
 }
 

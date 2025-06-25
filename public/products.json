@@ -1,0 +1,54 @@
+{
+  "products": [
+    {
+      "id": "album-art-1",
+      "title": "I Love It When She Ride On Me",
+      "description": "Digital Album - Electronic Music",
+      "image": "/album-art.png",
+      "price": 15.99,
+      "category": "music",
+      "visible": true,
+      "order": 1
+    },
+    {
+      "id": "album-cover-1",
+      "title": "Oshamambe",
+      "description": "Digital Album - Ambient Electronic",
+      "image": "/album-cover.png",
+      "price": 15.99,
+      "category": "music",
+      "visible": true,
+      "order": 2
+    },
+    {
+      "id": "cd-placeholder-1",
+      "title": "Upcoming Release",
+      "description": "Coming Soon - Stay Tuned",
+      "image": "/cd-placeholder-1.png",
+      "price": 19.99,
+      "category": "music",
+      "visible": false,
+      "order": 3
+    },
+    {
+      "id": "cd-placeholder-2",
+      "title": "Digital Dreams EP",
+      "description": "Electronic Music - Digital Release",
+      "image": "/cd-placeholder-2.png",
+      "price": 12.99,
+      "category": "music",
+      "visible": false,
+      "order": 4
+    },
+    {
+      "id": "cd-placeholder-3",
+      "title": "Deluxe Edition",
+      "description": "Special Edition Album",
+      "image": "/cd-placeholder-2.png",
+      "price": 19.99,
+      "category": "music",
+      "visible": false,
+      "order": 5
+    }
+  ]
+}

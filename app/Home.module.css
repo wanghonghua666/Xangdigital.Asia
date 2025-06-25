@@ -1,0 +1,483 @@
+/* === Global Styles === */
+
+.wrapper {
+  position: relative;
+  min-height: 100vh;
+  background: url("/header-image.jpg") no-repeat center top;
+  background-size: 101% 100.5%;
+  font-family: monospace;
+  overflow-x: hidden;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.55);
+  z-index: 0;
+}
+
+.fadeIn {
+  position: fixed;
+  inset: 0;
+  background-color: black;
+  z-index: 9999;
+  animation: fadeOut 1.5s ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* === Header === */
+
+.header {
+  position: fixed;
+  top: 9px;
+  left: 10px;
+  width: calc(100% - 20px);
+  z-index: 1000;
+  text-align: left;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.siteTitle {
+  font-family: monospace;
+  font-size: 1rem;
+  color: red;
+  font-weight: bold;
+  letter-spacing: 19px;
+  margin: 1px;
+  transform: scaleY(1.5);
+  text-align: left;
+}
+
+/* 右上角導航欄 */
+.guidebar {
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+}
+
+.guidebarItem {
+  font-family: monospace;
+  font-size: 1.1rem;
+  font-weight: lighter;
+  color: red;
+  letter-spacing: 1.4px;
+  transform: scaleY(0.8);
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.guidebarItem:hover {
+  color: white;
+}
+
+/* 響應式XANGDIGITAL標題 */
+@media (max-width: 768px) {
+  .siteTitle {
+    font-size: 1rem; /* 比guidebar大 */
+    letter-spacing: 12px;
+    transform: scaleY(1.3);
+  }
+  
+  .guidebar {
+    gap: 1rem;
+  }
+  
+  .guidebarItem {
+    font-size: 0.9rem;
+  }
+  
+  .cdSection {
+    margin: 1rem 0 1rem 0; /* 进一步减少margin */
+    min-height: 280px; /* 适应180px CD + padding */
+    padding: 0.5rem 0; /* 减少padding */
+  }
+}
+
+@media (max-width: 480px) {
+  .siteTitle {
+    font-size: 0.9rem; /* 比guidebar大 */
+    letter-spacing: 10px;
+    transform: scaleY(1.2);
+  }
+  
+  .guidebar {
+    gap: 0.8rem;
+  }
+  
+  .guidebarItem {
+    font-size: 0.7rem;
+  }
+  
+  .cdSection {
+    margin: 0.5rem 0 !important; /* 少量margin */
+    min-height: 340px !important; /* 适应234px CD + 缩放 */
+    padding: 0.5rem 0 !important; /* 少量padding */
+    overflow: hidden !important; /* 防止内容溢出 */
+  }
+  
+  /* 超小屏幕下社交媒体图标进一步缩小 */
+  .socialIcon[alt="Spotify"] {
+    width: 30px !important;
+    height: 30px !important;
+  }
+  
+  .socialIcon[alt="YouTube"] {
+    width: 36px !important;
+    height: 26px !important;
+    margin-top: 1px !important;
+  }
+  
+  .socialIcon[alt="Instagram"] {
+    width: 30px !important;
+    height: 30px !important;
+  }
+  
+  .appleMusicIcon {
+    width: 38px !important;
+    height: 38px !important;
+    margin-top: -4px !important;
+  }
+  
+  /* 手机端About section优化 */
+  .aboutSection {
+    margin: 0.24rem auto 2.4rem auto !important; /* 增加20% */
+    padding: 0.5rem !important;
+  }
+  
+  .aboutText, .aboutEText {
+    font-size: 0.7rem !important;
+    line-height: 1.3 !important;
+  }
+}
+
+.navbar {
+  display: flex;
+  gap: 2rem;
+  margin: 0;
+  text-align: right;
+  padding: 2rem;
+}
+
+
+
+.navButton:hover {
+  color: white;
+}
+
+/* === Main === */
+
+.main {
+  top: 9px;
+  position: relative;
+  z-index: 1;
+  padding: 2rem 1rem;
+  color: white;
+  text-align: center;
+}
+
+.sectionTitle {
+  font-family: monospace;
+  max-width: 700px;
+  margin: 3rem auto 1rem auto;
+  padding: 0;
+  color: red;
+  border-radius: 0px;
+  font-size: 1.5rem;
+  font-weight: lighter;
+  letter-spacing: 1px;
+  transform: scaleY(0.8);
+}
+
+.worktitle {
+  font-family: monospace;
+  max-width: 700px;
+  margin: 3rem auto 1rem auto;
+  padding: 0;
+  color: red;
+  border-radius: 0px;
+  font-size: 1.5rem;
+  font-weight: lighter;
+  letter-spacing: 1px;
+  transform: scaleY(0.8);
+}
+
+
+
+/* === CD Section === */
+
+.cdSection {
+  width: 100%;
+  margin: 1.2rem 0 1.2rem 0; /* 增加20%: 1rem -> 1.2rem */
+  min-height: 250px; /* 桌面端也减小高度 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* CD懸停效果已移至JavaScript處理 */
+
+/* === About Section === */
+
+.aboutSection {
+  max-width: 1000px;
+  margin: 0.6rem auto 3.6rem auto; /* 增加20%: 0.5rem -> 0.6rem, 3rem -> 3.6rem */
+  padding: 0.1rem;
+  color: red;
+  border-radius: 12px;
+}
+
+.aboutText,
+.aboutEText {
+  font-family: "Noto Sans TC", sans-serif;
+  color: rgba(255, 255, 255, 0.7);
+  text-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
+  letter-spacing: 0.01rem;
+  text-align: left;
+  opacity: 0.9;
+  font-size: 0.8rem;
+}
+
+.aboutEText {
+  font-family: monospace;
+}
+
+/* === Shop Section === */
+
+.shopSection {
+  width: 100%;
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.productsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.productCard {
+  background: transparent;
+  border-radius: 12px;
+  padding: 0;
+  border: none;
+  transition: transform 0.4s ease;
+  position: relative; /* 为悬停标题提供定位基础 */
+}
+
+.productCard:hover {
+  transform: translateY(-10px);
+}
+
+.productImage {
+  width: 100%;
+  height: 300px; /* 固定canvas高度 */
+  margin-bottom: 1rem;
+  overflow: visible; /* 允许阴影显示 */
+  border-radius: 0; /* 移除容器圆角 */
+  background: transparent; /* 透明背景 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative; /* 为悬停标题提供定位基础 */
+}
+
+.productImage img {
+  width: 49%; /* 再缩小30%: 70% * 0.7 = 49% */
+  height: auto;
+  object-fit: contain; /* 保持原始形状，不裁剪 */
+  transition: transform 0.4s ease;
+  border-radius: 0; /* 去掉圆角 */
+}
+
+.productCard:hover .productImage img {
+  transform: scale(1.08);
+}
+
+/* 悬停时显示商品标题 */
+.productCard:hover .productTitle {
+  opacity: 1;
+}
+
+.productInfo {
+  text-align: center;
+  padding: 0; /* 移除padding，因为标题现在悬停显示 */
+}
+
+/* 商品标题样式 - 悬停时显示 */
+.productTitle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scaleY(0.8);
+  font-family: monospace; /* 改为work title的字体 */
+  color: red;
+  font-size: 1.3rem; /* 稍微大一点 */
+  font-weight: lighter;
+  letter-spacing: 1px;
+  text-align: center;
+  opacity: 0; /* 初始隐藏 */
+  transition: opacity 0.3s ease;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  z-index: 10;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.productDescription {
+  display: none; /* 隐藏描述，保持简洁 */
+}
+
+.productPrice {
+  font-family: monospace; /* 改为monospace字体 */
+  color: red;
+  font-size: 1.2rem;
+  margin-bottom: 0;
+  font-weight: lighter;
+  letter-spacing: 1px;
+}
+
+.buyButton {
+  display: none; /* 隐藏按钮，为Shopify Buy Button预留空间 */
+}
+
+/* === Contact Section === */
+
+.contactSection {
+  margin-top: 7.2rem; /* 增加20%: 6rem -> 7.2rem */
+  border-radius: 3px;
+}
+
+.contactTitle {
+  font-family: monospace;
+  max-width: 700px;
+  margin: 3.6rem auto 1.2rem auto; /* 增加20%: 3rem -> 3.6rem, 1rem -> 1.2rem */
+  padding: 0;
+  color: red;
+  border-radius: 0px;
+  font-size: 1.5rem;
+  font-weight: lighter;
+  letter-spacing: 1px;
+  transform: scaleY(0.8);
+}
+
+.socialLinks {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 2.4rem; /* 增加20%: 2rem -> 2.4rem */
+  margin-top: 1.2rem; /* 增加20%: 1rem -> 1.2rem */
+}
+
+.socialLink {
+  display: inline-block;
+  transition: transform 0.3s ease;
+}
+
+.socialLink:hover {
+  transform: scale(1.1);
+}
+
+.socialIcon {
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+/* Spotify 图标 - 圆形，相对较大 */
+.socialIcon[alt="Spotify"] {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+}
+
+/* YouTube 图标 - 矩形，需要稍微小一点 */
+.socialIcon[alt="YouTube"] {
+  width: 50px;
+  height: 36px;
+  border-radius: 4px;
+  margin-top: 3px;
+}
+
+/* Instagram 图标 - 圆角正方形 */
+.socialIcon[alt="Instagram"] {
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+}
+
+/* Apple Music 图标 - 圆角正方形 */
+.appleMusicIcon {
+  width: 54px;
+  height: 54px;
+  border-radius: 8px;
+  margin-top: -6px;
+}
+
+/* === 響應式設計 === */
+@media (max-width: 768px) {
+  .cdSection {
+    margin: 0.5rem 0 1rem 0 !important; /* 减少tablet端cd section的padding */
+    min-height: 180px !important; /* 缩短平板端高度 */
+  }
+  
+  /* 手机端社交媒体图标整体缩小20% */
+  .socialIcon[alt="Spotify"] {
+    width: 34px !important; /* 42px * 0.8 = 33.6px ≈ 34px */
+    height: 34px !important;
+  }
+  
+  .socialIcon[alt="YouTube"] {
+    width: 40px !important; /* 50px * 0.8 = 40px */
+    height: 29px !important; /* 36px * 0.8 = 28.8px ≈ 29px */
+    margin-top: 2px !important; /* 3px * 0.8 ≈ 2px */
+  }
+  
+  .socialIcon[alt="Instagram"] {
+    width: 34px !important; /* 42px * 0.8 = 33.6px ≈ 34px */
+    height: 34px !important;
+  }
+  
+  .appleMusicIcon {
+    width: 43px !important; /* 54px * 0.8 = 43.2px ≈ 43px */
+    height: 43px !important;
+    margin-top: -5px !important; /* -6px * 0.8 ≈ -5px */
+  }
+  
+  /* Shop页面响应式 */
+  .productsGrid {
+    grid-template-columns: 1fr !important;
+    gap: 2rem !important;
+  }
+  
+  .productImage {
+    height: 250px !important; /* 手机端canvas稍小 */
+  }
+  
+  .productTitle {
+    font-size: 1rem !important; /* 手机端稍小 */
+    padding: 0.6rem 1rem !important; /* 手机端减少padding */
+  }
+  
+  .productPrice {
+    font-size: 1.1rem !important;
+  }
+}
