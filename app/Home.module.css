@@ -311,8 +311,8 @@
   transform: scale(1.08);
 }
 
-/* 悬停时显示商品标题 */
-.productCard:hover .productTitle {
+/* 悬停时显示商品信息容器 */
+.productCard:hover .productInfoOverlay {
   opacity: 1;
 }
 
@@ -321,26 +321,31 @@
   padding: 0; /* 移除padding，因为标题现在悬停显示 */
 }
 
-/* 商品标题样式 - 悬停时显示 */
-.productTitle {
+/* 商品信息悬停容器 */
+.productInfoOverlay {
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%) scaleY(0.8);
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.8);
+  padding: 0.8rem 1.2rem;
+  opacity: 0; /* 初始隐藏 */
+  transition: opacity 0.3s ease;
+  z-index: 10;
+  pointer-events: none;
+  text-align: center;
+}
+
+/* 商品标题样式 - 悬停时显示 */
+.productTitle {
   font-family: monospace; /* 改为work title的字体 */
   color: red;
   font-size: 1.3rem; /* 稍微大一点 */
   font-weight: lighter;
   letter-spacing: 1px;
-  text-align: center;
-  opacity: 0; /* 初始隐藏 */
-  transition: opacity 0.3s ease;
-  background: rgba(0, 0, 0, 0.8);
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  z-index: 10;
-  pointer-events: none;
+  margin: 0 0 0.02rem 0; /* 极限缩短：0.075rem -> 0.02rem */
   white-space: nowrap;
+  transform: scaleY(0.8);
 }
 
 .productDescription {
@@ -351,9 +356,10 @@
   font-family: monospace; /* 改为monospace字体 */
   color: red;
   font-size: 1.2rem;
-  margin-bottom: 0;
+  margin: 0;
   font-weight: lighter;
   letter-spacing: 1px;
+  white-space: nowrap;
 }
 
 .buyButton {

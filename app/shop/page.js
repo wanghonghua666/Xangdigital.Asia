@@ -42,7 +42,7 @@ export default function Shop() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 
-      <div className={styles.wrapper}>
+      <div className="shop-wrapper">
         <div className={styles.fadeIn}></div>
         <div className={styles.overlay}></div>
 
@@ -88,10 +88,12 @@ export default function Shop() {
                           e.target.src = '/placeholder.svg'
                         }}
                       />
-                      <h3 className={styles.productTitle}>{product.title}</h3>
+                      <div className={styles.productInfoOverlay}>
+                        <h3 className={styles.productTitle}>{product.title}</h3>
+                        <div className={styles.productPrice}>€{product.price}</div>
+                      </div>
                     </div>
                     <div className={styles.productInfo}>
-                      <div className={styles.productPrice}>€{product.price}</div>
                       <div className={styles.shopifyButton}>
                         {/* Shopify Buy Button 预留位置 */}
                       </div>
@@ -103,6 +105,20 @@ export default function Shop() {
           </div>
         </main>
       </div>
+
+      <style jsx>{`
+        .shop-wrapper {
+          min-height: 100vh;
+          background-image: url('/header-image2.jpg');
+          background-size: 100% 100%;
+          background-position: center;
+          background-repeat: no-repeat;
+          background-attachment: fixed;
+          position: relative;
+          display: flex;
+          flex-direction: column;
+        }
+      `}</style>
     </>
   )
 } 

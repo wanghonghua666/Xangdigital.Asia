@@ -1,8 +1,8 @@
 .wrapper {
   position: relative;
   min-height: 100vh;
-  background: url("/header-image.jpg") no-repeat center top;
-  background-size: 101% 100.5%;
+  background: url("/header-image2.jpg") no-repeat center top;
+  background-size: contain;
   font-family: monospace;
   overflow-x: hidden;
 }
