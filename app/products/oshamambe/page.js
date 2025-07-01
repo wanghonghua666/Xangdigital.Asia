@@ -1,5 +1,6 @@
 "use client"
 
+import Head from "next/head"
 import Link from "next/link"
 import styles from "./product.module.css"
 import DynamicProductPage from "../../../components/DynamicProductPage"
@@ -25,23 +26,30 @@ export default function ProductPage() {
   }
 
   return (
-    <div className={styles.wrapper}>
-      <div className={styles.overlay}></div>
+    <>
+      <Head>
+        <title>XANGDIGITAL.ASIA</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+      </Head>
       
-      <header className={styles.header}>
-        <Link href="/" className={styles.backButton}>
-          ← BACK
-        </Link>
-        <h1 className={styles.siteTitle}>XANGDIGITAL.ASIA</h1>
-      </header>
+      <div className={styles.wrapper}>
+        <div className={styles.overlay}></div>
+        
+        <header className={styles.header}>
+          <Link href="/" className={styles.backButton}>
+            ← BACK
+          </Link>
+          <h1 className={styles.siteTitle}>XANGDIGITAL.ASIA</h1>
+        </header>
 
-      <main className={styles.main}>
-        <DynamicProductPage 
-          pageId="oshamambe"
-          fallbackData={fallbackData}
-          styles={styles}
-        />
-      </main>
-    </div>
+        <main className={styles.main}>
+          <DynamicProductPage 
+            pageId="oshamambe"
+            fallbackData={fallbackData}
+            styles={styles}
+          />
+        </main>
+      </div>
+    </>
   )
 } 

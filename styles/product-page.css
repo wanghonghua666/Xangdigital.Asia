@@ -1,13 +1,16 @@
-.wrapper {
+/* 通用产品页面样式 - 统一管理所有产品页面的样式 */
+
+/* 包装器样式 */
+.product-wrapper {
   position: relative;
   min-height: 100vh;
   background: url("/header-image2.jpg") no-repeat center top;
   background-size: 100% 100%;
-  font-family: "JetBrains Mono", monospace;
+  font-family: "JetBrains Mono", monospace !important;
   overflow-x: hidden;
 }
 
-.overlay {
+.product-overlay {
   position: absolute;
   inset: 0;
   background: linear-gradient(
@@ -22,7 +25,8 @@
   z-index: 0;
 }
 
-.header {
+/* 头部样式 */
+.product-header {
   position: fixed;
   top: 9px;
   left: 10px;
@@ -35,8 +39,8 @@
   justify-content: space-between;
 }
 
-.backButton {
-  font-family: "JetBrains Mono", monospace;
+.product-back-button {
+  font-family: "JetBrains Mono", monospace !important;
   font-size: 1.1rem;
   font-weight: lighter;
   color: red;
@@ -47,12 +51,12 @@
   transition: color 0.3s ease;
 }
 
-.backButton:hover {
+.product-back-button:hover {
   color: white;
 }
 
-.siteTitle {
-  font-family: "JetBrains Mono", monospace;
+.product-site-title {
+  font-family: "JetBrains Mono", monospace !important;
   font-size: 1rem;
   color: red;
   font-weight: bolder;
@@ -63,14 +67,15 @@
   flex-grow: 1;
 }
 
-.main {
+/* 主要内容 */
+.product-main {
   position: relative;
   z-index: 1;
   padding: 6rem 2rem 2rem 2rem;
   color: white;
 }
 
-.productContainer {
+.product-container {
   max-width: 1200px;
   margin: 0 auto;
   display: grid;
@@ -79,23 +84,24 @@
   align-items: start;
 }
 
-.productImage {
+.product-image {
   position: sticky;
   top: 6rem;
 }
 
-.productImage img {
+.product-image img {
   width: 100%;
   height: auto;
   border-radius: 8px;
 }
 
-.productInfo {
+.product-info {
   padding: 2rem 0;
 }
 
-.productTitle {
-  font-family: "JetBrains Mono", monospace;
+/* 红色标题样式 - 与首页RedFont2保持一致 */
+.product-title {
+  font-family: "JetBrains Mono", monospace !important;
   font-size: 1.5rem;
   font-weight: lighter;
   color: red;
@@ -104,35 +110,37 @@
   margin-bottom: 1rem;
 }
 
-.productDescription {
-  font-family: "JetBrains Mono", monospace;
+.product-description {
+  font-family: "JetBrains Mono", monospace !important;
   color: rgba(255, 255, 255, 0.9);
   font-size: 1.1rem;
   margin-bottom: 2rem;
   line-height: 1.6;
 }
 
-.trackList {
+/* 曲目列表 */
+.product-track-list {
   margin-bottom: 2rem;
 }
 
-.trackList h3 {
-  font-family: "JetBrains Mono", monospace;
+.product-track-list h3 {
+  font-family: "JetBrains Mono", monospace !important;
   color: red;
   font-size: 1.2rem;
   margin-bottom: 1rem;
   letter-spacing: 1px;
 }
 
-.trackList p {
-  font-family: "JetBrains Mono", monospace;
+.product-track-list p {
+  font-family: "JetBrains Mono", monospace !important;
   color: rgba(255, 255, 255, 0.8);
   font-size: 0.9rem;
   margin-bottom: 0.5rem;
   line-height: 1.4;
 }
 
-.productDetails {
+/* 产品详情 */
+.product-details {
   margin-bottom: 3rem;
   padding: 1.5rem;
   background: rgba(0, 0, 0, 0.3);
@@ -140,37 +148,43 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.productDetails p {
-  font-family: "JetBrains Mono", monospace;
+.product-details p {
+  font-family: "JetBrains Mono", monospace !important;
   color: rgba(255, 255, 255, 0.7);
   font-size: 0.85rem;
   margin-bottom: 0.5rem;
   line-height: 1.4;
 }
 
-.priceSection {
+/* 价格区域 */
+.product-price-section {
   margin-bottom: 2rem;
 }
 
-.price {
-  font-family: "JetBrains Mono", monospace;
+.product-price {
+  font-family: "JetBrains Mono", monospace !important;
   color: white;
   font-size: 2rem;
   font-weight: bold;
   letter-spacing: 1px;
 }
 
-.buyButtonContainer {
-  /* Shopify Buy Button 容器 */
+.product-price-disabled {
+  font-family: "JetBrains Mono", monospace !important;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 2rem;
+  font-weight: bold;
+  letter-spacing: 1px;
 }
 
-.buyButton {
+/* 按钮样式 - 与navbar按钮保持一致 */
+.product-buy-button {
   background: red;
   color: white;
   border: none;
   padding: 1rem 2rem;
   border-radius: 4px;
-  font-family: "JetBrains Mono", monospace;
+  font-family: "JetBrains Mono", monospace !important;
   font-size: 1.1rem;
   font-weight: lighter;
   letter-spacing: 1.4px;
@@ -181,50 +195,61 @@
   max-width: 300px;
 }
 
-.buyButton:hover {
+.product-buy-button:hover {
   background: white;
   color: red;
 }
 
+.product-buy-button:disabled {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.4);
+  cursor: not-allowed;
+}
+
+.product-buy-button:disabled:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.4);
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
-  .header {
+  .product-header {
     padding: 0.5rem;
   }
   
-  .siteTitle {
+  .product-site-title {
     font-size: 0.8rem;
     letter-spacing: 8px;
   }
   
-  .backButton {
+  .product-back-button {
     font-size: 0.9rem;
   }
   
-  .main {
+  .product-main {
     padding: 5rem 1rem 2rem 1rem;
   }
   
-  .productContainer {
+  .product-container {
     grid-template-columns: 1fr;
     gap: 2rem;
   }
   
-  .productImage {
+  .product-image {
     position: static;
     order: 1;
   }
   
-  .productInfo {
+  .product-info {
     order: 2;
     padding: 1rem 0;
   }
   
-  .productTitle {
-    font-size: 1.5rem;
+  .product-title {
+    font-size: 1.2rem;
   }
   
-  .productDescription {
+  .product-description {
     font-size: 1rem;
   }
 } 
