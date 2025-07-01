@@ -18,7 +18,7 @@ export default function ProductPage() {
       <main className={styles.main}>
         <div className={styles.productContainer}>
           <div className={styles.productImage}>
-            <img src="/cd-empty-1.png" alt="Upcoming Release" />
+            <img src="/cd/cd-empty-1.png" alt="Upcoming Release" />
           </div>
           
           <div className={styles.productInfo}>

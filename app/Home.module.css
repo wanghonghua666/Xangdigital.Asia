@@ -4,9 +4,11 @@
   position: relative;
   min-height: 100vh;
   background: url("/header-image.jpg") no-repeat center top;
-  background-size: 101% 100.5%;
-  font-family: monospace;
-  overflow-x: hidden;
+  background-size: 100% 100%;
+  font-family: "JetBrains Mono", monospace;
+  overflow: hidden; /* 完全隐藏wrapper的滚动条 */
+  width: 100%;
+  max-width: 100vw;
 }
 
 .overlay {
@@ -44,19 +46,21 @@
   top: 9px;
   left: 10px;
   width: calc(100% - 20px);
+  max-width: calc(100vw - 20px); /* 确保不超过视口宽度 */
   z-index: 1000;
   text-align: left;
   padding: 1rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  box-sizing: border-box; /* 确保padding计算在宽度内 */
 }
 
 .siteTitle {
-  font-family: monospace;
+  font-family: "JetBrains Mono", monospace;
   font-size: 1rem;
   color: red;
-  font-weight: bold;
+  font-weight: bolder;
   letter-spacing: 19px;
   margin: 1px;
   transform: scaleY(1.5);
@@ -71,15 +75,31 @@
 }
 
 .guidebarItem {
-  font-family: monospace;
+  font-family: "JetBrains Mono", monospace;
   font-size: 1.1rem;
   font-weight: lighter;
   color: red;
   letter-spacing: 1.4px;
-  transform: scaleY(0.8);
+  transform: scaleY(0.7);
   text-decoration: none;
   cursor: pointer;
   transition: color 0.3s ease;
+}
+
+.RedFont2 {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 1.5rem;
+  font-weight: lighter;
+  color: red;
+  letter-spacing: 1.4px;
+  transform: scaleY(0.7);
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.3s ease;
+  /* 标题通用间距设置 */
+  max-width: 700px;
+  margin: 3rem auto 1rem auto;
+  padding: 0;
 }
 
 .guidebarItem:hover {
@@ -156,6 +176,8 @@
   
   /* 手机端About section优化 */
   .aboutSection {
+    max-width: 90vw !important; /* 移动端占90%宽度 */
+    min-width: unset !important; /* 移除最小宽度限制 */
     margin: 0.24rem auto 2.4rem auto !important; /* 增加20% */
     padding: 0.5rem !important;
   }
@@ -163,6 +185,8 @@
   .aboutText, .aboutEText {
     font-size: 0.7rem !important;
     line-height: 1.3 !important;
+    text-align: left !important; /* 移动端也保持左对齐 */
+    max-width: none !important; /* 覆盖全局限制 */
   }
 }
 
@@ -191,31 +215,7 @@
   text-align: center;
 }
 
-.sectionTitle {
-  font-family: monospace;
-  max-width: 700px;
-  margin: 3rem auto 1rem auto;
-  padding: 0;
-  color: red;
-  border-radius: 0px;
-  font-size: 1.5rem;
-  font-weight: lighter;
-  letter-spacing: 1px;
-  transform: scaleY(0.8);
-}
 
-.worktitle {
-  font-family: monospace;
-  max-width: 700px;
-  margin: 3rem auto 1rem auto;
-  padding: 0;
-  color: red;
-  border-radius: 0px;
-  font-size: 1.5rem;
-  font-weight: lighter;
-  letter-spacing: 1px;
-  transform: scaleY(0.8);
-}
 
 
 
@@ -230,16 +230,92 @@
   justify-content: center;
 }
 
-/* CD懸停效果已移至JavaScript處理 */
+/* CD轮播样式 */
+.cdScroll {
+  display: flex !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  gap: 0.8rem;
+  padding: 2rem 0;
+  align-items: center;
+  width: 100%;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  scroll-behavior: smooth;
+}
+
+.cdScroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* CD項目樣式 */
+.cdItem {
+  flex-shrink: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  position: relative;
+}
+
+/* CD圖片樣式和懸停效果 */
+.cdImage {
+  width: 220px;
+  height: 220px;
+  border-radius: 0px;
+  object-fit: cover;
+  cursor: pointer;
+  transform-style: preserve-3d;
+  transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+  display: block;
+  /* 使用CSS变量设置动态样式 */
+  transform: scale(var(--dynamic-scale, 1));
+  opacity: var(--dynamic-opacity, 1);
+}
+
+/* 鼠標懸停放大效果 - 覆盖动态样式 */
+.cdImage:hover {
+  transform: scale(0.6) !important; /* 非中心CD缩小到60% */
+  opacity: 1 !important;
+  z-index: 100 !important;
+  transition: all 0.3s ease !important;
+}
+
+/* 中心CD的悬停效果 - 通过JavaScript动态添加center-cd类 */
+.cdImage.center-cd:hover {
+  transform: scale(1.15) !important; /* 中心CD有更大的放大效果 */
+}
+
+/* 移動端CD樣式 */
+@media (max-width: 768px) {
+  .cdImage {
+    width: 234px;
+    height: 234px;
+    /* 移动端也使用CSS变量 */
+    transform: scale(var(--dynamic-scale, 1));
+    opacity: var(--dynamic-opacity, 1);
+  }
+  
+  .cdImage:hover {
+    transform: scale(0.6) !important; /* 移动端非中心CD极微小放大 */
+    opacity: 1 !important;
+    z-index: 100 !important;
+  }
+  
+  .cdImage.center-cd:hover {
+    transform: scale(1.1) !important; /* 移动端中心CD稍大放大 */
+  }
+}
 
 /* === About Section === */
 
 .aboutSection {
-  max-width: 1000px;
-  margin: 0.6rem auto 3.6rem auto; /* 增加20%: 0.5rem -> 0.6rem, 3rem -> 3.6rem */
+  max-width: 65vw !important; /* 16:9屏幕上占一半宽度 */
+  min-width: 600px !important; /* 最小宽度确保可读性 */
+  margin: 0.6rem auto 3.6rem auto !important; /* 整个section居中 */
   padding: 0.1rem;
   color: red;
   border-radius: 12px;
+  box-sizing: border-box !important;
 }
 
 .aboutText,
@@ -248,13 +324,16 @@
   color: rgba(255, 255, 255, 0.7);
   text-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
   letter-spacing: 0.01rem;
-  text-align: left;
+  text-align: left !important; /* 文字左对齐 */
   opacity: 0.9;
   font-size: 0.8rem;
+  width: 100% !important; /* 撑满父容器 */
+  max-width: none !important; /* 覆盖全局限制 */
+  box-sizing: border-box !important;
 }
 
 .aboutEText {
-  font-family: monospace;
+  font-family: "JetBrains Mono", monospace;
 }
 
 /* === Shop Section === */
@@ -338,7 +417,7 @@
 
 /* 商品标题样式 - 悬停时显示 */
 .productTitle {
-  font-family: monospace; /* 改为work title的字体 */
+  font-family: "JetBrains Mono", monospace; /* 改为work title的字体 */
   color: red;
   font-size: 1.3rem; /* 稍微大一点 */
   font-weight: lighter;
@@ -353,7 +432,7 @@
 }
 
 .productPrice {
-  font-family: monospace; /* 改为monospace字体 */
+  font-family: "JetBrains Mono", monospace; /* 改为monospace字体 */
   color: red;
   font-size: 1.2rem;
   margin: 0;
@@ -373,18 +452,7 @@
   border-radius: 3px;
 }
 
-.contactTitle {
-  font-family: monospace;
-  max-width: 700px;
-  margin: 3.6rem auto 1.2rem auto; /* 增加20%: 3rem -> 3.6rem, 1rem -> 1.2rem */
-  padding: 0;
-  color: red;
-  border-radius: 0px;
-  font-size: 1.5rem;
-  font-weight: lighter;
-  letter-spacing: 1px;
-  transform: scaleY(0.8);
-}
+
 
 .socialLinks {
   display: flex;

@@ -1,0 +1,75 @@
+/* CD轮播样式文件 - 专门管理轮播功能的所有样式 */
+
+/* 强制CD轮播水平布局 - 覆盖所有可能的grid样式 */
+.cd-scroll {
+  display: flex !important;
+  flex-direction: row !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  width: 100% !important;
+  
+  /* 重置任何grid设置 */
+  grid-template-columns: none !important;
+  grid-template-rows: none !important;
+  grid-auto-flow: unset !important;
+  
+  /* 隐藏滚动条 */
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
+.cd-scroll::-webkit-scrollbar {
+  display: none !important;
+}
+
+/* CD项目强制flex子项样式 */
+.cd-item {
+  flex-shrink: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  position: relative !important;
+  
+  /* 重置grid子项属性 */
+  grid-column: unset !important;
+  grid-row: unset !important;
+}
+
+/* CD图片过渡效果和悬停效果 */
+.cd-image {
+  transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+  display: block !important;
+  
+  /* 使用CSS变量设置动态样式 */
+  transform: scale(var(--dynamic-scale, 1)) !important;
+  opacity: var(--dynamic-opacity, 1) !important;
+}
+
+/* 非中心CD的悬停轻微缩小效果 */
+.cd-image:hover {
+  transform: scale(0.8) !important;
+  opacity: 0.7 !important; /* 保持半透明感觉 */
+  z-index: 100 !important;
+  transition: all 0.3s ease !important;
+}
+
+/* 中心CD的大悬停放大效果 */
+.cd-image.center-cd:hover {
+  transform: scale(1.15) !important;
+  opacity: 1 !important; /* 中心CD悬停时完全不透明 */
+}
+
+/* 移动端悬停效果 */
+@media (max-width: 768px) {
+  .cd-image:hover {
+    transform: scale(0.8) !important; /* 移动端非中心CD缩小 */
+    opacity: 0.8 !important; /* 移动端稍微不那么透明 */
+  }
+  
+  .cd-image.center-cd:hover {
+    transform: scale(1.1) !important; /* 移动端中心CD放大到110% */
+    opacity: 1 !important;
+  }
+} 

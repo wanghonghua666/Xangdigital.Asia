@@ -18,7 +18,7 @@ export default function ProductPage() {
       <main className={styles.main}>
         <div className={styles.productContainer}>
           <div className={styles.productImage}>
-            <img src="/album-art.png" alt="I Love It When She Ride On Me - Deluxe Edition" />
+            <img src="/cd/album-art.png" alt="I Love It When She Ride On Me - Deluxe Edition" />
           </div>
           
           <div className={styles.productInfo}>

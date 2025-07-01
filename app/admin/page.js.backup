@@ -19,13 +19,8 @@ import {
   getAllProductPages,
   getProductPage,
   updateProductPage,
-  initializeProductPages,
-  clearCache,
-  fixImagePaths,
-  handleCleanupData
+  initializeProductPages
 } from "../../lib/firebaseService"
-import { collection, getDocs, deleteDoc } from "firebase/firestore"
-import { db } from "../../lib/firebase"
 
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -66,9 +61,6 @@ export default function AdminPage() {
     try {
       console.log(`🔥 加载${tab}数据...`)
       
-      // 每次都确保public图片列表可用
-      loadPublicImages()
-      
       if (tab === "products" && products.length === 0) {
         const productsResult = await getAllProducts().catch(err => ({ products: [], error: err }))
         setProducts(productsResult.products || [])
@@ -79,12 +71,22 @@ export default function AdminPage() {
         setCds(cdsData)
       }
       
-      if (tab === "images") {
-        // 只加载public文件夹图片，不依赖Firebase Storage
+      if (tab === "images" && images.length === 0) {
+        const imagesData = await getAllImages().catch(err => [])
+        setImages(imagesData)
         loadPublicImages()
       }
       
-      if (tab === "product-pages") {        
+      if (tab === "product-pages") {
+        // 确保图片数据也已加载
+        if (images.length === 0) {
+          const imagesData = await getAllImages().catch(err => [])
+          setImages(imagesData)
+        }
+        if (publicImages.length === 0) {
+          loadPublicImages()
+        }
+        
         if (productPages.length === 0) {
         // 从Firebase加载产品页面数据
         try {
@@ -153,7 +155,6 @@ export default function AdminPage() {
           ]
           setProductPages(defaultPages)
         }
-        }
       }
       
       console.log('✅ 数据加载成功')
@@ -175,25 +176,21 @@ export default function AdminPage() {
       '/cd/cd-placeholder-1.png',
       '/cd/cd-placeholder-2.png',
       '/cd/cd-placeholder-3.png',
-      '/cd/Nia.jpg',
       
-      // Product图片
+      // 产品图片
       '/product/album-art-1.jpeg',
       '/product/album-cover-main.jpeg',
       
-      // Products图片
-      '/products/placeholder.jpg',
-      
-      // 根目录图片
+      // 占位符
       '/placeholder.svg',
       '/placeholder.jpg',
-      '/placeholder-logo.png',
-      '/placeholder-logo.svg',
-      '/placeholder-user.jpg',
-      '/header-image.jpg',
-      '/header-image2.jpg'
+      
+      // 图标
+      '/spotify-logo.png',
+      '/youtube-logo.png',
+      '/apple-music-logo.png',
+      '/insta.png'
     ]
-    
     setPublicImages(imageFiles)
   }
 
@@ -202,7 +199,7 @@ export default function AdminPage() {
     const newProduct = {
       title: "新商品",
       description: "商品描述",
-      image: "/placeholder.svg",  // 使用存在的占位符图片
+      image: "/products/placeholder.jpg",
       price: 0,
       category: "music",
       visible: false,
@@ -225,6 +222,8 @@ export default function AdminPage() {
   const handleUpdateProduct = async (productId, productData) => {
     setLoading(true)
     try {
+      console.log('🔄 正在更新商品:', { productId, productData })
+      
       // 检查产品是否存在
       const existingProduct = products.find(p => p.id === productId)
       if (!existingProduct) {
@@ -235,7 +234,7 @@ export default function AdminPage() {
       setProducts(products.map(p => p.id === productId ? { ...p, ...productData } : p))
       setEditingProduct(null)
       
-      await clearCache()
+      console.log('✅ 商品更新成功')
     } catch (error) {
       console.error('❌ 更新商品失败:', error)
       setError(`更新商品失败: ${error.message}`)
@@ -250,7 +249,6 @@ export default function AdminPage() {
       try {
         await deleteProduct(productId)
         setProducts(products.filter(p => p.id !== productId))
-        await clearCache()
       } catch (error) {
         setError("删除商品失败: " + error.message)
       } finally {
@@ -263,7 +261,7 @@ export default function AdminPage() {
   const handleCreateCD = async () => {
     const newCD = {
       title: "新CD",
-      image: "/cd/cd-placeholder-1.png",  // 使用存在的CD占位符图片
+      image: "/products/placeholder.jpg",
       productLink: "/products/new",
       order: cds.length + 1,
       visible: true
@@ -288,7 +286,6 @@ export default function AdminPage() {
       await updateCD(cdId, cdData)
       setCds(cds.map(c => c.id === cdId ? { ...c, ...cdData } : c))
       setEditingCD(null)
-      await clearCache()
     } catch (error) {
       setError("更新CD失败: " + error.message)
     } finally {
@@ -302,7 +299,6 @@ export default function AdminPage() {
       try {
         await deleteCD(cdId)
         setCds(cds.filter(c => c.id !== cdId))
-        await clearCache()
       } catch (error) {
         setError("删除CD失败: " + error.message)
       } finally {
@@ -320,9 +316,6 @@ export default function AdminPage() {
       // 保存到Firebase
       await updateProductPage(pageId, pageData)
       
-      // 清除缓存确保数据同步
-      clearCache()
-      
       // 更新本地状态
       setProductPages(productPages.map(p => p.id === pageId ? { ...p, ...pageData } : p))
       setEditingProductPage(null)
@@ -331,56 +324,6 @@ export default function AdminPage() {
     } catch (error) {
       console.error('❌ 更新产品页面失败:', error)
       setError(`更新产品页面失败: ${error.message}`)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  // 创建新产品页面
-  const handleCreateProductPage = async () => {
-    const newPageId = prompt('请输入新页面的ID (例如: new-album-2024):')
-    if (!newPageId) return
-    
-    // 检查ID是否已存在
-    if (productPages.find(p => p.id === newPageId)) {
-      alert('页面ID已存在，请使用不同的ID')
-      return
-    }
-    
-    const newPage = {
-      id: newPageId,
-      title: '新专辑',
-      description: '专辑描述...',
-      image: '/cd/album-art.png',
-      price: '€20.00',
-      trackList: [
-        'A1 · 曲目一',
-        'A2 · 曲目二'
-      ],
-      details: {
-        catalog: 'NEW001',
-        album: '新专辑',
-        releaseType: 'Album',
-        releaseDate: new Date().toLocaleDateString('zh-CN'),
-        label: 'XANG DIGITAL'
-      }
-    }
-    
-    setLoading(true)
-    try {
-      // 保存到Firebase
-      await updateProductPage(newPageId, newPage)
-      
-      // 更新本地状态
-      setProductPages([...productPages, newPage])
-      
-      // 立即编辑新页面
-      setEditingProductPage(newPage)
-      
-      console.log('✅ 新产品页面创建成功:', newPageId)
-    } catch (error) {
-      console.error('❌ 创建产品页面失败:', error)
-      setError(`创建页面失败: ${error.message}`)
     } finally {
       setLoading(false)
     }
@@ -404,48 +347,6 @@ export default function AdminPage() {
     }
   }
 
-  // 修复图片路径
-  const handleFixImagePaths = async () => {
-    try {
-      setLoading(true)
-      
-      const result = await fixImagePaths()
-      alert(`修复完成！共修复了 ${result.fixed} 个文档`)
-      
-      // 重新加载数据
-      await Promise.all([loadProducts(), loadCDs(), loadProductPages()])
-    } catch (error) {
-      console.error("修复图片路径时出错:", error)
-      alert("修复失败: " + error.message)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  // 清理无效数据
-  const handleCleanupData = async () => {
-    if (!confirm('确定要清理无效的placeholder数据吗？这个操作不可撤销。')) {
-      return
-    }
-    
-    try {
-      setLoading(true)
-      
-      // 需要导入handleCleanupData函数
-      const { handleCleanupData: cleanupData } = await import("../../lib/firebaseService")
-      await cleanupData()
-      alert('无效数据清理完成！')
-      
-      // 重新加载数据
-      await Promise.all([loadProducts(), loadCDs(), loadProductPages()])
-    } catch (error) {
-      console.error("清理数据时出错:", error)
-      alert("清理失败: " + error.message)
-    } finally {
-      setLoading(false)
-    }
-  }
-
   // Tab切换处理
   const handleTabChange = (tab) => {
     setActiveTab(tab)
@@ -460,13 +361,8 @@ export default function AdminPage() {
     }
   }, [isAuthenticated])
 
-  // 组件加载时初始化图片列表
-  useEffect(() => {
-    loadPublicImages()
-  }, [])
-
   if (!isAuthenticated) {
-  return (
+    return (
       <div style={authContainerStyle}>
         <div style={authFormStyle}>
           <h1 style={titleStyle}>管理员登录</h1>
@@ -500,27 +396,13 @@ export default function AdminPage() {
       <div style={headerStyle}>
         <h1 style={titleStyle}>商品管理系统</h1>
         <div style={headerActionsStyle}>
-          <button onClick={handleCleanupData} style={{
-            ...backButtonStyle,
-            backgroundColor: '#f44336',
-            marginRight: '10px'
-          }}>
-            🗑️ 清理数据
-          </button>
-          <button onClick={handleFixImagePaths} style={{
-            ...backButtonStyle,
-            backgroundColor: '#ff9800',
-            marginRight: '10px'
-          }}>
-            🔧 修复图片路径
-          </button>
           <button onClick={() => router.push('/')} style={backButtonStyle}>
             返回首页
           </button>
           <button onClick={() => setIsAuthenticated(false)} style={logoutButtonStyle}>
             退出登录
           </button>
-          </div>
+        </div>
       </div>
 
       {error && <div style={errorBannerStyle}>{error}</div>}
@@ -536,7 +418,7 @@ export default function AdminPage() {
           style={activeTab === "products" ? activeTabStyle : tabStyle}
         >
           商品管理 ({products.length})
-            </button>
+        </button>
         <button 
           onClick={() => {
             setActiveTab("cds")
@@ -563,8 +445,8 @@ export default function AdminPage() {
           style={activeTab === "product-pages" ? activeTabStyle : tabStyle}
         >
           产品页面管理 ({productPages.length})
-            </button>
-          </div>
+        </button>
+      </div>
 
       {/* 商品管理 */}
       {activeTab === "products" && (
@@ -665,15 +547,15 @@ export default function AdminPage() {
             <h2>图片管理</h2>
             <label style={uploadButtonStyle}>
               上传图片
-                  <input
+              <input 
                 type="file" 
                 accept="image/*" 
                 onChange={handleImageUpload}
                 style={{ display: 'none' }}
-                  />
+              />
             </label>
-                </div>
-
+          </div>
+          
           <h3>Firebase存储的图片</h3>
           <div style={imageGridStyle}>
             {images.map(image => (
@@ -688,7 +570,7 @@ export default function AdminPage() {
                 </button>
               </div>
             ))}
-                </div>
+          </div>
 
           <h3>Public文件夹中的图片</h3>
           <div style={imageGridStyle}>
@@ -713,14 +595,8 @@ export default function AdminPage() {
         <div style={contentStyle}>
           <div style={sectionHeaderStyle}>
             <h2>产品页面内容管理</h2>
-            <button onClick={handleCreateProductPage} style={createButtonStyle}>
-              新增页面
-            </button>
             <p style={{ fontSize: '14px', color: '#666', marginTop: '8px' }}>
               管理各个产品页面的详细内容，包括标题、描述、曲目列表等
-            </p>
-            <p style={{ fontSize: '12px', color: '#999', marginTop: '4px' }}>
-              可用图片: {publicImages.length} 张
             </p>
           </div>
           
@@ -774,7 +650,7 @@ export default function AdminPage() {
           product={editingProduct}
           onSave={handleUpdateProduct}
           onCancel={() => setEditingProduct(null)}
-          availableImages={publicImages}
+          availableImages={[...images.map(i => i.url), ...publicImages]}
         />
       )}
 
@@ -784,7 +660,7 @@ export default function AdminPage() {
           cd={editingCD}
           onSave={handleUpdateCD}
           onCancel={() => setEditingCD(null)}
-          availableImages={publicImages}
+          availableImages={[...images.map(i => i.url), ...publicImages]}
         />
       )}
 
@@ -794,7 +670,7 @@ export default function AdminPage() {
           page={editingProductPage}
           onSave={handleUpdateProductPage}
           onCancel={() => setEditingProductPage(null)}
-          availableImages={publicImages}
+          availableImages={[...images.map(i => i.url), ...publicImages]}
         />
       )}
     </div>
@@ -827,24 +703,24 @@ function ProductEditModal({ product, onSave, onCancel, availableImages }) {
         <form onSubmit={handleSubmit}>
           <div style={formGroupStyle}>
             <label>商品名称:</label>
-                    <input
-                      type="text"
+            <input 
+              type="text"
               value={formData.title}
               onChange={(e) => setFormData({...formData, title: e.target.value})}
               style={modalInputStyle}
-                    />
-                  </div>
-
+            />
+          </div>
+          
           <div style={formGroupStyle}>
             <label>简短描述:</label>
-                    <textarea
+            <textarea 
               value={formData.description}
               onChange={(e) => setFormData({...formData, description: e.target.value})}
               style={modalTextareaStyle}
               rows={2}
               placeholder="商品的简短描述"
-                    />
-                  </div>
+            />
+          </div>
 
           <div style={formGroupStyle}>
             <label>详细介绍:</label>
@@ -888,14 +764,14 @@ function ProductEditModal({ product, onSave, onCancel, availableImages }) {
           </div>
 
           <div style={formGroupStyle}>
-                    <label>价格:</label>
-                    <input
-                      type="number"
+            <label>价格:</label>
+            <input 
+              type="number"
               value={formData.price}
               onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value) || 0})}
               style={modalInputStyle}
-                    />
-                  </div>
+            />
+          </div>
 
           <div style={formGroupStyle}>
             <label>
@@ -950,22 +826,22 @@ function CDEditModal({ cd, onSave, onCancel, availableImages }) {
 
           <div style={formGroupStyle}>
             <label>CD图片:</label>
-                    <select
+            <select
               value={formData.image}
               onChange={(e) => setFormData({...formData, image: e.target.value})}
               style={modalSelectStyle}
-                    >
+            >
               <option value="">选择图片...</option>
               {availableImages.map(imageUrl => (
                 <option key={imageUrl} value={imageUrl}>
                   {imageUrl}
                 </option>
               ))}
-                    </select>
+            </select>
             {formData.image && (
               <img src={formData.image} alt="预览" style={previewImageStyle} />
             )}
-                  </div>
+          </div>
 
           <div style={formGroupStyle}>
             <label>产品链接:</label>
@@ -979,23 +855,23 @@ function CDEditModal({ cd, onSave, onCancel, availableImages }) {
           </div>
 
           <div style={formGroupStyle}>
-                    <label>
-                      <input
-                        type="checkbox"
+            <label>
+              <input 
+                type="checkbox"
                 checked={formData.visible}
                 onChange={(e) => setFormData({...formData, visible: e.target.checked})}
-                      />
+              />
               在轮播中显示
-                    </label>
-                </div>
+            </label>
+          </div>
 
           <div style={modalActionsStyle}>
             <button type="submit" style={saveButtonStyle}>保存</button>
             <button type="button" onClick={onCancel} style={cancelButtonStyle}>取消</button>
-              </div>
-        </form>
           </div>
+        </form>
       </div>
+    </div>
   )
 }
 
@@ -1056,10 +932,7 @@ const tabsStyle = {
 const tabStyle = {
   padding: '0.5rem 1rem',
   background: 'transparent',
-  borderTop: 'none',
-  borderLeft: 'none',
-  borderRight: 'none',
-  borderBottom: 'none',
+  border: 'none',
   color: '#888',
   cursor: 'pointer',
   fontSize: '1rem',
@@ -1138,10 +1011,7 @@ const buttonStyle = {
   padding: '0.5rem 1rem',
   background: 'red',
   color: 'white',
-  borderTop: 'none',
-  borderLeft: 'none',
-  borderRight: 'none',
-  borderBottom: 'none',
+  border: 'none',
   borderRadius: '4px',
   cursor: 'pointer',
   fontFamily: 'monospace'
