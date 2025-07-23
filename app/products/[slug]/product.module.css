@@ -1,0 +1,230 @@
+.wrapper {
+  position: relative;
+  min-height: 100vh;
+  background: url("/header-image2.jpg") no-repeat center top;
+  background-size: 100% 100%;
+  font-family: "JetBrains Mono", monospace;
+  overflow-x: hidden;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(0, 0, 0, 0.3) 0%,
+    rgba(20, 20, 30, 0.4) 25%,
+    rgba(40, 40, 60, 0.35) 50%,
+    rgba(20, 20, 30, 0.4) 75%,
+    rgba(0, 0, 0, 0.3) 100%
+  );
+  backdrop-filter: blur(1px);
+  z-index: 0;
+}
+
+.header {
+  position: fixed;
+  top: 9px;
+  left: 10px;
+  width: calc(100% - 20px);
+  z-index: 1000;
+  text-align: left;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.backButton {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 1.1rem;
+  font-weight: lighter;
+  color: red;
+  letter-spacing: 1.4px;
+  transform: scaleY(0.7);
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.backButton:hover {
+  color: white;
+}
+
+.siteTitle {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 1rem;
+  color: red;
+  font-weight: bolder;
+  letter-spacing: 19px;
+  margin: 1px;
+  transform: scaleY(1.5);
+  text-align: center;
+  flex-grow: 1;
+}
+
+.main {
+  position: relative;
+  z-index: 1;
+  padding: 6rem 2rem 2rem 2rem;
+  color: white;
+}
+
+.productContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: start;
+}
+
+.productImage {
+  position: sticky;
+  top: 6rem;
+}
+
+.productImage img {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+.productInfo {
+  padding: 2rem 0;
+}
+
+.productTitle {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 1.5rem;
+  font-weight: lighter;
+  color: red;
+  letter-spacing: 1.4px;
+  transform: scaleY(0.7);
+  margin-bottom: 1rem;
+}
+
+.productDescription {
+  font-family: "JetBrains Mono", monospace;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1.1rem;
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
+.trackList {
+  margin-bottom: 2rem;
+}
+
+.trackList h3 {
+  font-family: "JetBrains Mono", monospace;
+  color: red;
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+  letter-spacing: 1px;
+}
+
+.trackList p {
+  font-family: "JetBrains Mono", monospace;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+}
+
+.productDetails {
+  margin-bottom: 3rem;
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.productDetails p {
+  font-family: "JetBrains Mono", monospace;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+}
+
+.priceSection {
+  margin-bottom: 2rem;
+}
+
+.price {
+  font-family: "JetBrains Mono", monospace;
+  color: white;
+  font-size: 2rem;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.buyButtonContainer {
+  /* Shopify Buy Button 容器 */
+}
+
+.buyButton {
+  background: red;
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 4px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 1.1rem;
+  font-weight: lighter;
+  letter-spacing: 1.4px;
+  transform: scaleY(0.7);
+  cursor: pointer;
+  transition: color 0.3s ease, background-color 0.3s ease;
+  width: 100%;
+  max-width: 300px;
+}
+
+.buyButton:hover {
+  background: white;
+  color: red;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .header {
+    padding: 0.5rem;
+  }
+  
+  .siteTitle {
+    font-size: 0.8rem;
+    letter-spacing: 8px;
+  }
+  
+  .backButton {
+    font-size: 0.9rem;
+  }
+  
+  .main {
+    padding: 5rem 1rem 2rem 1rem;
+  }
+  
+  .productContainer {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  
+  .productImage {
+    position: static;
+    order: 1;
+  }
+  
+  .productInfo {
+    order: 2;
+    padding: 1rem 0;
+  }
+  
+  .productTitle {
+    font-size: 1.5rem;
+  }
+  
+  .productDescription {
+    font-size: 1rem;
+  }
+} 

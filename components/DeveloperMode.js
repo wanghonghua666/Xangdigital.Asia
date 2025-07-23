@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { fixImagePaths, clearCache } from "../lib/firebaseService"
 import styles from "../app/Home.module.css"
 
 export default function DeveloperMode() {
@@ -34,33 +33,6 @@ export default function DeveloperMode() {
     }
   }
 
-  const handleFixFirebasePaths = async () => {
-    try {
-      console.log('🔧 开始修复Firebase图片路径...')
-      await fixImagePaths()
-      await clearCache()
-      console.log('✅ Firebase路径修复完成，缓存已清理')
-      alert('✅ Firebase路径修复成功！请刷新页面查看效果。')
-      
-      // 可选：自动刷新页面
-      window.location.reload()
-    } catch (error) {
-      console.error('❌ 修复Firebase路径失败:', error)
-      alert('❌ 修复失败: ' + error.message)
-    }
-  }
-
-  const handleClearCache = async () => {
-    try {
-      await clearCache()
-      console.log('✅ 缓存清理完成')
-      alert('✅ 缓存清理成功！')
-    } catch (error) {
-      console.error('❌ 清理缓存失败:', error)
-      alert('❌ 清理失败: ' + error.message)
-    }
-  }
-
   const buttonStyle = {
     padding: '0.8rem 1.2rem',
     border: 'none',
@@ -68,9 +40,12 @@ export default function DeveloperMode() {
     cursor: 'pointer',
     fontFamily: 'monospace',
     fontSize: '0.8rem',
+    fontWeight: '400',
+    fontStretch: '0.8',
     color: 'white',
     transition: 'all 0.3s ease',
-    margin: '0.5rem 0'
+    margin: '0.5rem 0',
+    width: '100%'
   }
 
   return (
@@ -113,37 +88,26 @@ export default function DeveloperMode() {
                       backgroundColor: '#4c6ef5'
                     }}
                   >
-                    🔧 进入管理后台
+                    管理后台
                   </button>
                   
                   <button 
-                    onClick={handleFixFirebasePaths}
+                    onClick={() => {
+                      // 添加实时编辑功能
+                      const currentUrl = window.location.pathname
+                      if (currentUrl.startsWith('/products/')) {
+                        const slug = currentUrl.split('/products/')[1]
+                        router.push(`/admin?edit=product-pages&slug=${slug}`)
+                      } else {
+                        router.push('/admin')
+                      }
+                    }}
                     style={{
                       ...buttonStyle,
                       backgroundColor: '#51cf66'
                     }}
                   >
-                    🔧 修复Firebase路径
-                  </button>
-                  
-                  <button 
-                    onClick={handleClearCache}
-                    style={{
-                      ...buttonStyle,
-                      backgroundColor: '#ff6b6b'
-                    }}
-                  >
-                    🗑️ 清理缓存
-                  </button>
-                  
-                  <button 
-                    onClick={() => window.location.reload()}
-                    style={{
-                      ...buttonStyle,
-                      backgroundColor: '#868e96'
-                    }}
-                  >
-                    🔄 刷新页面
+                    实时编辑
                   </button>
                   
                   <button 
@@ -184,6 +148,7 @@ export default function DeveloperMode() {
           opacity: 0.5;
           transition: opacity 0.3s ease;
           font-family: monospace;
+          font-stretch: 0.8;
         }
 
         .developer-mode button:hover {
@@ -225,6 +190,7 @@ export default function DeveloperMode() {
           border-radius: 4px;
           color: white;
           font-family: monospace;
+          font-stretch: 0.8;
           margin-bottom: 1rem;
           box-sizing: border-box;
         }
@@ -243,6 +209,7 @@ export default function DeveloperMode() {
           font-size: 0.8rem;
           margin-bottom: 1rem;
           font-family: monospace;
+          font-stretch: 0.8;
           text-align: center;
         }
 
@@ -258,6 +225,7 @@ export default function DeveloperMode() {
           border-radius: 4px;
           cursor: pointer;
           font-family: monospace;
+          font-stretch: 0.8;
           transition: background-color 0.3s ease;
           font-size: 0.8rem;
         }
@@ -283,11 +251,6 @@ export default function DeveloperMode() {
         .dev-tools {
           display: flex;
           flex-direction: column;
-        }
-
-        .dev-tools button {
-          width: 100%;
-          display: block;
         }
 
         .dev-tools button:hover {

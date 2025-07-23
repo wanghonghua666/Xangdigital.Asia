@@ -3,36 +3,33 @@
 @tailwind utilities;
 
 html {
-  overflow-x: hidden; /* 只隐藏横向滚动条 */
-  overflow-y: auto; /* 允许纵向滚动 */
+  overflow-x: hidden;
+  overflow-y: auto;
   width: 100%;
   max-width: 100%;
 }
 
 body {
-  font-family: "JetBrains Mono", monospace !important;
-  overflow-x: hidden; /* 只隐藏横向滚动条 */
-  overflow-y: auto; /* 允许纵向滚动 */
+  overflow-x: hidden;
+  overflow-y: auto;
   margin: 0;
   padding: 0;
   width: 100%;
   max-width: 100%;
 }
 
-/* 全局防止水平溢出 */
 * {
   box-sizing: border-box;
   max-width: 100%;
 }
 
-/* 隱藏滾動條 */
 .scrollbar-hide {
-  -ms-overflow-style: none; /* Internet Explorer 10+ */
-  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 .scrollbar-hide::-webkit-scrollbar {
-  display: none; /* Safari and Chrome */
+  display: none;
 }
 
 @layer utilities {

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { 
   getAllProducts, 
   getAllCDs, 
@@ -26,6 +26,7 @@ import {
 } from "../../lib/firebaseService"
 import { collection, getDocs, deleteDoc } from "firebase/firestore"
 import { db } from "../../lib/firebase"
+import UnifiedDataManager from "../../components/UnifiedDataManager"
 
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -39,12 +40,140 @@ export default function AdminPage() {
   const [images, setImages] = useState([])
   const [publicImages, setPublicImages] = useState([])
   const [productPages, setProductPages] = useState([])
+  const [systemLogs, setSystemLogs] = useState([])
   const [activeTab, setActiveTab] = useState("products")
   const [editingProduct, setEditingProduct] = useState(null)
   const [editingCD, setEditingCD] = useState(null)
   const [editingProductPage, setEditingProductPage] = useState(null)
   
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  // 检查URL参数，支持实时编辑
+  useEffect(() => {
+    const editType = searchParams.get('edit')
+    const editSlug = searchParams.get('slug')
+    
+    if (editType && editSlug) {
+      // 自动切换到对应的标签页
+      setActiveTab(editType)
+      
+      // 如果是产品页面编辑，加载对应数据
+      if (editType === 'product-pages') {
+        loadData(editType).then(() => {
+          // 查找对应的产品页面
+          const targetPage = productPages.find(page => page.firestoreId === editSlug || page.id === editSlug)
+          if (targetPage) {
+            setEditingProductPage(targetPage)
+          }
+        })
+      }
+    }
+  }, [searchParams])
+
+  // 字段配置
+  const productFields = [
+    { name: 'title', label: '商品名称', type: 'text', required: true },
+    { name: 'description', label: '简短描述', type: 'textarea' },
+    { name: 'detailedDescription', label: '详细介绍', type: 'textarea' },
+    { name: 'productInfo', label: '产品信息', type: 'textarea' },
+    { name: 'image', label: '商品图片', type: 'image' },
+    { name: 'price', label: '价格', type: 'number', required: true },
+    { name: 'category', label: '分类', type: 'select', options: [
+      { value: 'music', label: '音乐' },
+      { value: 'merchandise', label: '周边' },
+      { value: 'digital', label: '数字产品' }
+    ]},
+    { name: 'visible', label: '在商店中显示', type: 'checkbox' },
+    { name: 'order', label: '排序', type: 'number' },
+    // Shopify集成字段
+    { name: 'shopifyProductId', label: 'Shopify产品ID', type: 'text', placeholder: 'gid://shopify/Product/123456789' },
+    { name: 'shopifyVariantId', label: 'Shopify变体ID', type: 'text', placeholder: 'gid://shopify/ProductVariant/987654321' },
+    { name: 'shopifyHandle', label: 'Shopify Handle', type: 'text', placeholder: 'product-handle' },
+    { name: 'shopifyAvailable', label: 'Shopify库存状态', type: 'checkbox' },
+    { name: 'shopifyPrice', label: 'Shopify价格', type: 'text', placeholder: '€15.99' },
+    { name: 'shopifyCurrency', label: '货币', type: 'select', options: [
+      { value: 'EUR', label: '欧元 (€)' },
+      { value: 'USD', label: '美元 ($)' },
+      { value: 'CNY', label: '人民币 (¥)' }
+    ]}
+  ]
+
+  const cdFields = [
+    { name: 'title', label: 'CD标题', type: 'text', required: true },
+    { name: 'image', label: 'CD图片', type: 'image' },
+    { name: 'productLink', label: '产品链接', type: 'text' },
+    { name: 'visible', label: '在轮播中显示', type: 'checkbox' },
+    { name: 'order', label: '排序', type: 'number' }
+  ]
+
+  const productPageFields = [
+    { name: 'title', label: '产品标题', type: 'text', required: true },
+    { name: 'description', label: '产品描述', type: 'textarea' },
+    { name: 'image', label: '产品图片', type: 'image' },
+    { name: 'price', label: '价格', type: 'text' },
+    { name: 'trackList', label: '曲目列表', type: 'textarea', placeholder: '每行一个曲目，如：A1 · HAPPY BOY' },
+    { name: 'details.catalog', label: '目录号', type: 'text' },
+    { name: 'details.album', label: '专辑名称', type: 'text' },
+    { name: 'details.releaseType', label: '发布类型', type: 'text' },
+    { name: 'details.releaseDate', label: '发布日期', type: 'text' },
+    { name: 'details.label', label: '厂牌', type: 'text' },
+    { name: 'details.ar', label: 'A&R', type: 'text' },
+    { name: 'details.writer', label: '作词', type: 'text' },
+    { name: 'details.producer', label: '制作人', type: 'text' },
+    { name: 'details.mixing', label: '混音', type: 'text' },
+    { name: 'details.master', label: '母带', type: 'text' },
+    { name: 'details.creativeDirector', label: '创意总监', type: 'text' },
+    { name: 'details.artDirector', label: '艺术总监', type: 'text' }
+  ]
+
+  // 默认数据
+  const defaultProduct = {
+    title: "新商品",
+    description: "商品描述",
+    image: "/placeholder.svg",
+    price: 0,
+    category: "music",
+    visible: false,
+    order: 1,
+    // Shopify集成默认值
+    shopifyProductId: "",
+    shopifyVariantId: "",
+    shopifyHandle: "",
+    shopifyAvailable: false,
+    shopifyPrice: "€0.00",
+    shopifyCurrency: "EUR"
+  }
+
+  const defaultCD = {
+    title: "新CD",
+    image: "/cd/cd-placeholder-1.png",
+    productLink: "/products/new",
+    visible: true,
+    order: 1
+  }
+
+  const defaultProductPage = {
+    title: "新专辑",
+    description: "专辑描述...",
+    image: "/cd/album-art.png",
+    price: "€20.00",
+    trackList: "A1 · 曲目一\nA2 · 曲目二",
+    details: {
+      catalog: "NEW001",
+      album: "新专辑",
+      releaseType: "Album",
+      releaseDate: new Date().toLocaleDateString('zh-CN'),
+      label: "XANG DIGITAL",
+      ar: "",
+      writer: "",
+      producer: "",
+      mixing: "",
+      master: "",
+      creativeDirector: "",
+      artDirector: ""
+    }
+  }
 
   // 检查身份验证
   const handleAuth = async (e) => {
@@ -64,8 +193,6 @@ export default function AdminPage() {
   const loadData = async (tab = "products") => {
     setLoading(true)
     try {
-      console.log(`🔥 加载${tab}数据...`)
-      
       // 每次都确保public图片列表可用
       loadPublicImages()
       
@@ -92,14 +219,11 @@ export default function AdminPage() {
           
           // 如果没有数据，则初始化默认数据
           if (pagesData.length === 0) {
-            console.log('🆕 初始化产品页面数据...')
             pagesData = await initializeProductPages()
           }
           
           setProductPages(pagesData)
-          console.log(`📄 加载了 ${pagesData.length} 个产品页面`)
         } catch (error) {
-          console.error('❌ 产品页面数据加载失败:', error)
           // 使用本地默认数据作为fallback
           const defaultPages = [
             {
@@ -156,7 +280,19 @@ export default function AdminPage() {
         }
       }
       
-      console.log('✅ 数据加载成功')
+      if (tab === "logs") {
+        // 加载系统日志
+        try {
+          const logs = JSON.parse(localStorage.getItem('admin_logs') || '[]')
+          setSystemLogs(logs.reverse()) // 最新的日志在前面
+          console.log(`📋 加载了 ${logs.length} 条系统日志`)
+        } catch (error) {
+          console.error('❌ 加载系统日志失败:', error)
+          setSystemLogs([])
+        }
+      }
+      
+
     } catch (error) {
       console.error("❌ 数据加载失败:", error)
       setError(`加载数据失败: ${error.message}`)
@@ -197,194 +333,7 @@ export default function AdminPage() {
     setPublicImages(imageFiles)
   }
 
-  // 商品管理
-  const handleCreateProduct = async () => {
-    const newProduct = {
-      title: "新商品",
-      description: "商品描述",
-      image: "/placeholder.svg",  // 使用存在的占位符图片
-      price: 0,
-      category: "music",
-      visible: false,
-      order: products.length + 1
-    }
-    
-    setLoading(true)
-    try {
-      const productId = await createProduct(newProduct)
-      const createdProduct = { id: productId, ...newProduct }
-      setProducts([...products, createdProduct])
-      setEditingProduct(createdProduct)
-    } catch (error) {
-      setError("创建商品失败: " + error.message)
-    } finally {
-      setLoading(false)
-    }
-  }
 
-  const handleUpdateProduct = async (productId, productData) => {
-    setLoading(true)
-    try {
-      // 检查产品是否存在
-      const existingProduct = products.find(p => p.id === productId)
-      if (!existingProduct) {
-        throw new Error(`商品不存在: ${productId}`)
-      }
-      
-      await updateProduct(productId, productData)
-      setProducts(products.map(p => p.id === productId ? { ...p, ...productData } : p))
-      setEditingProduct(null)
-      
-      await clearCache()
-    } catch (error) {
-      console.error('❌ 更新商品失败:', error)
-      setError(`更新商品失败: ${error.message}`)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleDeleteProduct = async (productId) => {
-    if (confirm("确定要删除这个商品吗？")) {
-      setLoading(true)
-      try {
-        await deleteProduct(productId)
-        setProducts(products.filter(p => p.id !== productId))
-        await clearCache()
-      } catch (error) {
-        setError("删除商品失败: " + error.message)
-      } finally {
-        setLoading(false)
-      }
-    }
-  }
-
-  // CD管理
-  const handleCreateCD = async () => {
-    const newCD = {
-      title: "新CD",
-      image: "/cd/cd-placeholder-1.png",  // 使用存在的CD占位符图片
-      productLink: "/products/new",
-      order: cds.length + 1,
-      visible: true
-    }
-    
-    setLoading(true)
-    try {
-      const cdId = await createCD(newCD)
-      const createdCD = { id: cdId, ...newCD }
-      setCds([...cds, createdCD])
-      setEditingCD(createdCD)
-    } catch (error) {
-      setError("创建CD失败: " + error.message)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleUpdateCD = async (cdId, cdData) => {
-    setLoading(true)
-    try {
-      await updateCD(cdId, cdData)
-      setCds(cds.map(c => c.id === cdId ? { ...c, ...cdData } : c))
-      setEditingCD(null)
-      await clearCache()
-    } catch (error) {
-      setError("更新CD失败: " + error.message)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleDeleteCD = async (cdId) => {
-    if (confirm("确定要删除这个CD吗？")) {
-      setLoading(true)
-      try {
-        await deleteCD(cdId)
-        setCds(cds.filter(c => c.id !== cdId))
-        await clearCache()
-      } catch (error) {
-        setError("删除CD失败: " + error.message)
-      } finally {
-        setLoading(false)
-      }
-    }
-  }
-
-  // 产品页面管理
-  const handleUpdateProductPage = async (pageId, pageData) => {
-    setLoading(true)
-    try {
-      console.log('🔄 正在更新产品页面:', { pageId, pageData })
-      
-      // 保存到Firebase
-      await updateProductPage(pageId, pageData)
-      
-      // 清除缓存确保数据同步
-      clearCache()
-      
-      // 更新本地状态
-      setProductPages(productPages.map(p => p.id === pageId ? { ...p, ...pageData } : p))
-      setEditingProductPage(null)
-      
-      console.log('✅ 产品页面更新成功')
-    } catch (error) {
-      console.error('❌ 更新产品页面失败:', error)
-      setError(`更新产品页面失败: ${error.message}`)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  // 创建新产品页面
-  const handleCreateProductPage = async () => {
-    const newPageId = prompt('请输入新页面的ID (例如: new-album-2024):')
-    if (!newPageId) return
-    
-    // 检查ID是否已存在
-    if (productPages.find(p => p.id === newPageId)) {
-      alert('页面ID已存在，请使用不同的ID')
-      return
-    }
-    
-    const newPage = {
-      id: newPageId,
-      title: '新专辑',
-      description: '专辑描述...',
-      image: '/cd/album-art.png',
-      price: '€20.00',
-      trackList: [
-        'A1 · 曲目一',
-        'A2 · 曲目二'
-      ],
-      details: {
-        catalog: 'NEW001',
-        album: '新专辑',
-        releaseType: 'Album',
-        releaseDate: new Date().toLocaleDateString('zh-CN'),
-        label: 'XANG DIGITAL'
-      }
-    }
-    
-    setLoading(true)
-    try {
-      // 保存到Firebase
-      await updateProductPage(newPageId, newPage)
-      
-      // 更新本地状态
-      setProductPages([...productPages, newPage])
-      
-      // 立即编辑新页面
-      setEditingProductPage(newPage)
-      
-      console.log('✅ 新产品页面创建成功:', newPageId)
-    } catch (error) {
-      console.error('❌ 创建产品页面失败:', error)
-      setError(`创建页面失败: ${error.message}`)
-    } finally {
-      setLoading(false)
-    }
-  }
 
   // 图片上传
   const handleImageUpload = async (e) => {
@@ -564,98 +513,45 @@ export default function AdminPage() {
         >
           产品页面管理 ({productPages.length})
             </button>
+        <button 
+          onClick={() => {
+            setActiveTab("logs")
+            loadData("logs")
+          }}
+          style={activeTab === "logs" ? activeTabStyle : tabStyle}
+        >
+          系统日志 ({systemLogs.length})
+        </button>
           </div>
 
       {/* 商品管理 */}
       {activeTab === "products" && (
-        <div style={contentStyle}>
-          <div style={sectionHeaderStyle}>
-            <h2>商品管理</h2>
-            <button onClick={handleCreateProduct} style={createButtonStyle}>
-              新增商品
-            </button>
-          </div>
-          
-          <div style={gridStyle}>
-            {products.map(product => (
-              <div key={product.id} style={cardStyle}>
-                <img 
-                  src={product.image} 
-                  alt={product.title}
-                  style={cardImageStyle}
-                  onError={(e) => {
-                    e.target.src = '/placeholder.svg'
-                  }}
-                />
-                <div style={cardContentStyle}>
-                  <h3>{product.title}</h3>
-                  <p>价格: ¥{product.price}</p>
-                  <p>状态: {product.visible ? '显示' : '隐藏'}</p>
-                  <div style={cardActionsStyle}>
-                    <button 
-                      onClick={() => setEditingProduct(product)}
-                      style={editButtonStyle}
-                    >
-                      编辑
-                    </button>
-                    <button 
-                      onClick={() => handleDeleteProduct(product.id)}
-                      style={deleteButtonStyle}
-                    >
-                      删除
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <UnifiedDataManager
+          type="products"
+          title="商品"
+          fields={productFields}
+          defaultData={defaultProduct}
+          availableImages={publicImages}
+          onDataChange={() => {
+            clearCache()
+            loadData("products")
+          }}
+        />
       )}
 
       {/* CD管理 */}
       {activeTab === "cds" && (
-        <div style={contentStyle}>
-          <div style={sectionHeaderStyle}>
-            <h2>CD轮播管理</h2>
-            <button onClick={handleCreateCD} style={createButtonStyle}>
-              新增CD
-            </button>
-          </div>
-          
-          <div style={gridStyle}>
-            {cds.map(cd => (
-              <div key={cd.id} style={cardStyle}>
-                <img 
-                  src={cd.image} 
-                  alt={cd.title}
-                  style={cardImageStyle}
-                  onError={(e) => {
-                    e.target.src = '/placeholder.svg'
-                  }}
-                />
-                <div style={cardContentStyle}>
-                  <h3>{cd.title}</h3>
-                  <p>链接: {cd.productLink}</p>
-                  <p>状态: {cd.visible ? '显示' : '隐藏'}</p>
-                  <div style={cardActionsStyle}>
-                    <button 
-                      onClick={() => setEditingCD(cd)}
-                      style={editButtonStyle}
-                    >
-                      编辑
-                    </button>
-                    <button 
-                      onClick={() => handleDeleteCD(cd.id)}
-                      style={deleteButtonStyle}
-                    >
-                      删除
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <UnifiedDataManager
+          type="cds"
+          title="CD"
+          fields={cdFields}
+          defaultData={defaultCD}
+          availableImages={publicImages}
+          onDataChange={() => {
+            clearCache()
+            loadData("cds")
+          }}
+        />
       )}
 
       {/* 图片管理 */}
@@ -665,14 +561,14 @@ export default function AdminPage() {
             <h2>图片管理</h2>
             <label style={uploadButtonStyle}>
               上传图片
-                  <input
+              <input
                 type="file" 
                 accept="image/*" 
                 onChange={handleImageUpload}
                 style={{ display: 'none' }}
-                  />
+              />
             </label>
-                </div>
+          </div>
 
           <h3>Firebase存储的图片</h3>
           <div style={imageGridStyle}>
@@ -688,7 +584,7 @@ export default function AdminPage() {
                 </button>
               </div>
             ))}
-                </div>
+          </div>
 
           <h3>Public文件夹中的图片</h3>
           <div style={imageGridStyle}>
@@ -710,294 +606,112 @@ export default function AdminPage() {
 
       {/* 产品页面管理 */}
       {activeTab === "product-pages" && (
+        <UnifiedDataManager
+          type="product-pages"
+          title="产品页面"
+          fields={productPageFields}
+          defaultData={defaultProductPage}
+          availableImages={publicImages}
+          onDataChange={() => {
+            clearCache()
+            loadData("product-pages")
+          }}
+        />
+      )}
+
+      {/* 系统日志 */}
+      {activeTab === "logs" && (
         <div style={contentStyle}>
           <div style={sectionHeaderStyle}>
-            <h2>产品页面内容管理</h2>
-            <button onClick={handleCreateProductPage} style={createButtonStyle}>
-              新增页面
-            </button>
+            <h2>系统日志</h2>
+            <div style={{ display: 'flex', gap: '1rem' }}>
+              <button 
+                onClick={() => {
+                  localStorage.removeItem('admin_logs')
+                  setSystemLogs([])
+                  alert('日志已清空')
+                }}
+                style={{
+                  ...buttonStyle,
+                  backgroundColor: '#dc3545',
+                  fontSize: '0.8rem'
+                }}
+              >
+                清空日志
+              </button>
+              <button 
+                onClick={() => {
+                  const logs = JSON.parse(localStorage.getItem('admin_logs') || '[]')
+                  const logText = logs.map(log => 
+                    `[${log.timestamp}] ${log.type.toUpperCase()}: ${log.message}`
+                  ).join('\n')
+                  
+                  navigator.clipboard.writeText(logText)
+                  alert('日志已复制到剪贴板')
+                }}
+                style={{
+                  ...buttonStyle,
+                  backgroundColor: '#17a2b8',
+                  fontSize: '0.8rem'
+                }}
+              >
+                复制日志
+              </button>
+            </div>
             <p style={{ fontSize: '14px', color: '#666', marginTop: '8px' }}>
-              管理各个产品页面的详细内容，包括标题、描述、曲目列表等
-            </p>
-            <p style={{ fontSize: '12px', color: '#999', marginTop: '4px' }}>
-              可用图片: {publicImages.length} 张
+              显示最近的系统运行日志，包括CD播放器动画初始化状态
             </p>
           </div>
           
-          <div style={gridStyle}>
-            {productPages.map(page => (
-              <div key={page.id} style={cardStyle}>
-                <img 
-                  src={page.image} 
-                  alt={page.title}
-                  style={cardImageStyle}
-                  onError={(e) => {
-                    e.target.src = '/placeholder.svg'
-                  }}
-                />
-                <div style={cardContentStyle}>
-                  <h3>{page.title}</h3>
-                  <p>价格: {page.price}</p>
-                  <p>曲目数: {page.trackList?.length || 0}</p>
-                  <p>页面ID: {page.id}</p>
-                  <div style={cardActionsStyle}>
-                    <button 
-                      onClick={() => setEditingProductPage(page)}
-                      style={editButtonStyle}
-                    >
-                      编辑页面内容
-                    </button>
-                    <a 
-                      href={`/products/${page.id}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ 
-                        ...editButtonStyle, 
-                        textDecoration: 'none',
-                        display: 'inline-block',
-                        marginLeft: '8px'
-                      }}
-                    >
-                      预览页面
-                    </a>
-                  </div>
-                </div>
+          <div style={logContainerStyle}>
+            {systemLogs.length === 0 ? (
+              <div style={noLogsStyle}>
+                <p>暂无系统日志</p>
+                <p style={{ fontSize: '12px', color: '#999' }}>
+                  访问首页后会自动生成日志记录
+                </p>
               </div>
-            ))}
+            ) : (
+              systemLogs.map((log, index) => (
+                <div key={index} style={{
+                  ...logItemStyle,
+                  borderLeftColor: log.type === 'error' ? '#dc3545' : 
+                                   log.type === 'warning' ? '#ffc107' : '#28a745'
+                }}>
+                  <div style={logHeaderStyle}>
+                    <span style={logTimestampStyle}>
+                      {new Date(log.timestamp).toLocaleString('zh-CN')}
+                    </span>
+                    <span style={{
+                      ...logTypeStyle,
+                      backgroundColor: log.type === 'error' ? '#dc3545' : 
+                                      log.type === 'warning' ? '#ffc107' : '#28a745',
+                      color: log.type === 'warning' ? '#000' : '#fff'
+                    }}>
+                      {log.type.toUpperCase()}
+                    </span>
+                  </div>
+                  <div style={logMessageStyle}>
+                    {log.message}
+                  </div>
+                  {log.url && (
+                    <div style={logMetaStyle}>
+                      <small>URL: {log.url}</small>
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
           </div>
         </div>
       )}
 
-      {/* 编辑商品模态框 */}
-      {editingProduct && (
-        <ProductEditModal 
-          product={editingProduct}
-          onSave={handleUpdateProduct}
-          onCancel={() => setEditingProduct(null)}
-          availableImages={publicImages}
-        />
-      )}
 
-      {/* 编辑CD模态框 */}
-      {editingCD && (
-        <CDEditModal 
-          cd={editingCD}
-          onSave={handleUpdateCD}
-          onCancel={() => setEditingCD(null)}
-          availableImages={publicImages}
-        />
-      )}
-
-      {/* 编辑产品页面模态框 */}
-      {editingProductPage && (
-        <ProductPageEditModal 
-          page={editingProductPage}
-          onSave={handleUpdateProductPage}
-          onCancel={() => setEditingProductPage(null)}
-          availableImages={publicImages}
-        />
-      )}
     </div>
   )
 }
 
-// 商品编辑模态框
-function ProductEditModal({ product, onSave, onCancel, availableImages }) {
-  const [formData, setFormData] = useState({
-    title: product.title || '',
-    description: product.description || '',
-    detailedDescription: product.detailedDescription || '', // 新增详细描述
-    productInfo: product.productInfo || '', // 新增产品信息
-    image: product.image || '',
-    price: product.price || 0,
-    category: product.category || 'music',
-    visible: product.visible || false,
-    order: product.order || 1
-  })
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    onSave(product.id, formData)
-  }
-
-  return (
-    <div style={modalOverlayStyle}>
-      <div style={modalStyle}>
-        <h2>编辑商品</h2>
-        <form onSubmit={handleSubmit}>
-          <div style={formGroupStyle}>
-            <label>商品名称:</label>
-                    <input
-                      type="text"
-              value={formData.title}
-              onChange={(e) => setFormData({...formData, title: e.target.value})}
-              style={modalInputStyle}
-                    />
-                  </div>
-
-          <div style={formGroupStyle}>
-            <label>简短描述:</label>
-                    <textarea
-              value={formData.description}
-              onChange={(e) => setFormData({...formData, description: e.target.value})}
-              style={modalTextareaStyle}
-              rows={2}
-              placeholder="商品的简短描述"
-                    />
-                  </div>
-
-          <div style={formGroupStyle}>
-            <label>详细介绍:</label>
-            <textarea 
-              value={formData.detailedDescription}
-              onChange={(e) => setFormData({...formData, detailedDescription: e.target.value})}
-              style={modalTextareaStyle}
-              rows={5}
-              placeholder="商品的详细介绍，支持多行文本"
-            />
-          </div>
-
-          <div style={formGroupStyle}>
-            <label>产品信息:</label>
-            <textarea 
-              value={formData.productInfo}
-              onChange={(e) => setFormData({...formData, productInfo: e.target.value})}
-              style={modalTextareaStyle}
-              rows={3}
-              placeholder="发行信息、规格参数等"
-            />
-          </div>
-
-          <div style={formGroupStyle}>
-            <label>商品图片:</label>
-            <select
-              value={formData.image}
-              onChange={(e) => setFormData({...formData, image: e.target.value})}
-              style={modalSelectStyle}
-            >
-              <option value="">选择图片...</option>
-              {availableImages.map(imageUrl => (
-                <option key={imageUrl} value={imageUrl}>
-                  {imageUrl}
-                </option>
-              ))}
-            </select>
-            {formData.image && (
-              <img src={formData.image} alt="预览" style={previewImageStyle} />
-            )}
-          </div>
-
-          <div style={formGroupStyle}>
-                    <label>价格:</label>
-                    <input
-                      type="number"
-              value={formData.price}
-              onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value) || 0})}
-              style={modalInputStyle}
-                    />
-                  </div>
-
-          <div style={formGroupStyle}>
-            <label>
-              <input 
-                type="checkbox"
-                checked={formData.visible}
-                onChange={(e) => setFormData({...formData, visible: e.target.checked})}
-              />
-              在商店中显示
-            </label>
-          </div>
-
-          <div style={modalActionsStyle}>
-            <button type="submit" style={saveButtonStyle}>保存</button>
-            <button type="button" onClick={onCancel} style={cancelButtonStyle}>取消</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  )
-}
-
-// CD编辑模态框
-function CDEditModal({ cd, onSave, onCancel, availableImages }) {
-  const [formData, setFormData] = useState({
-    title: cd.title || '',
-    image: cd.image || '',
-    productLink: cd.productLink || '',
-    visible: cd.visible !== false,
-    order: cd.order || 1
-  })
-
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    onSave(cd.id, formData)
-  }
-
-  return (
-    <div style={modalOverlayStyle}>
-      <div style={modalStyle}>
-        <h2>编辑CD</h2>
-        <form onSubmit={handleSubmit}>
-          <div style={formGroupStyle}>
-            <label>CD标题:</label>
-            <input 
-              type="text"
-              value={formData.title}
-              onChange={(e) => setFormData({...formData, title: e.target.value})}
-              style={modalInputStyle}
-            />
-          </div>
-
-          <div style={formGroupStyle}>
-            <label>CD图片:</label>
-                    <select
-              value={formData.image}
-              onChange={(e) => setFormData({...formData, image: e.target.value})}
-              style={modalSelectStyle}
-                    >
-              <option value="">选择图片...</option>
-              {availableImages.map(imageUrl => (
-                <option key={imageUrl} value={imageUrl}>
-                  {imageUrl}
-                </option>
-              ))}
-                    </select>
-            {formData.image && (
-              <img src={formData.image} alt="预览" style={previewImageStyle} />
-            )}
-                  </div>
-
-          <div style={formGroupStyle}>
-            <label>产品链接:</label>
-            <input 
-              type="text"
-              value={formData.productLink}
-              onChange={(e) => setFormData({...formData, productLink: e.target.value})}
-              style={modalInputStyle}
-              placeholder="/products/album-name"
-            />
-          </div>
-
-          <div style={formGroupStyle}>
-                    <label>
-                      <input
-                        type="checkbox"
-                checked={formData.visible}
-                onChange={(e) => setFormData({...formData, visible: e.target.checked})}
-                      />
-              在轮播中显示
-                    </label>
-                </div>
-
-          <div style={modalActionsStyle}>
-            <button type="submit" style={saveButtonStyle}>保存</button>
-            <button type="button" onClick={onCancel} style={cancelButtonStyle}>取消</button>
-              </div>
-        </form>
-          </div>
-      </div>
-  )
-}
 
 // 样式定义
 const authContainerStyle = {
@@ -1292,259 +1006,61 @@ const cancelButtonStyle = {
   background: '#6c757d'
 }
 
-// 产品页面编辑模态框组件
-function ProductPageEditModal({ page, onSave, onCancel, availableImages }) {
-  const [formData, setFormData] = useState({
-    title: page.title || '',
-    description: page.description || '',
-    image: page.image || '',
-    price: page.price || '',
-    trackList: page.trackList ? page.trackList.join('\n') : '',
-    catalog: page.details?.catalog || '',
-    album: page.details?.album || '',
-    releaseType: page.details?.releaseType || '',
-    releaseDate: page.details?.releaseDate || '',
-    label: page.details?.label || '',
-    ar: page.details?.ar || '',
-    writer: page.details?.writer || '',
-    producer: page.details?.producer || '',
-    mixing: page.details?.mixing || '',
-    master: page.details?.master || '',
-    creativeDirector: page.details?.creativeDirector || '',
-    artDirector: page.details?.artDirector || ''
-  })
+// 日志相关样式
+const logContainerStyle = {
+  maxHeight: '600px',
+  overflowY: 'auto',
+  border: '1px solid #333',
+  borderRadius: '4px',
+  background: 'rgba(0, 0, 0, 0.3)'
+}
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    
-    const pageData = {
-      title: formData.title,
-      description: formData.description,
-      image: formData.image,
-      price: formData.price,
-      trackList: formData.trackList.split('\n').filter(track => track.trim()),
-      details: {
-        catalog: formData.catalog,
-        album: formData.album,
-        releaseType: formData.releaseType,
-        releaseDate: formData.releaseDate,
-        label: formData.label,
-        ar: formData.ar,
-        writer: formData.writer,
-        producer: formData.producer,
-        mixing: formData.mixing,
-        master: formData.master,
-        creativeDirector: formData.creativeDirector,
-        artDirector: formData.artDirector
-      }
-    }
-    
-    onSave(page.id, pageData)
-  }
+const noLogsStyle = {
+  padding: '2rem',
+  textAlign: 'center',
+  color: '#666'
+}
 
-  return (
-    <div style={modalOverlayStyle} onClick={onCancel}>
-      <div style={{ ...modalStyle, maxWidth: '700px' }} onClick={e => e.stopPropagation()}>
-        <h2>编辑产品页面: {page.title}</h2>
-        <form onSubmit={handleSubmit}>
-          <div style={formGroupStyle}>
-            <label>产品标题</label>
-            <input
-              type="text"
-              value={formData.title}
-              onChange={e => setFormData({...formData, title: e.target.value})}
-              style={modalInputStyle}
-              required
-            />
-          </div>
+const logItemStyle = {
+  padding: '1rem',
+  borderBottom: '1px solid #333',
+  borderLeft: '4px solid #28a745',
+  background: 'rgba(0, 0, 0, 0.2)',
+  margin: '0'
+}
 
-          <div style={formGroupStyle}>
-            <label>产品描述</label>
-            <textarea
-              value={formData.description}
-              onChange={e => setFormData({...formData, description: e.target.value})}
-              style={modalTextareaStyle}
-              rows="3"
-            />
-          </div>
+const logHeaderStyle = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  marginBottom: '0.5rem'
+}
 
-          <div style={formGroupStyle}>
-            <label>产品图片</label>
-            <select
-              value={formData.image}
-              onChange={e => setFormData({...formData, image: e.target.value})}
-              style={modalSelectStyle}
-            >
-              <option value="">选择图片</option>
-              {availableImages.map(image => (
-                <option key={image} value={image}>{image}</option>
-              ))}
-            </select>
-            {formData.image && (
-              <img src={formData.image} alt="预览" style={previewImageStyle} />
-            )}
-          </div>
+const logTimestampStyle = {
+  fontSize: '0.8rem',
+  color: '#999',
+  fontFamily: 'monospace'
+}
 
-          <div style={formGroupStyle}>
-            <label>价格</label>
-            <input
-              type="text"
-              value={formData.price}
-              onChange={e => setFormData({...formData, price: e.target.value})}
-              style={modalInputStyle}
-              placeholder="€23.00"
-            />
-          </div>
+const logTypeStyle = {
+  padding: '0.2rem 0.5rem',
+  borderRadius: '3px',
+  fontSize: '0.7rem',
+  fontWeight: 'bold',
+  fontFamily: 'monospace'
+}
 
-          <div style={formGroupStyle}>
-            <label>曲目列表 (每行一个曲目)</label>
-            <textarea
-              value={formData.trackList}
-              onChange={e => setFormData({...formData, trackList: e.target.value})}
-              style={modalTextareaStyle}
-              rows="8"
-              placeholder="A1 · TRACK ONE&#10;A2 · TRACK TWO&#10;B1 · TRACK THREE"
-            />
-          </div>
+const logMessageStyle = {
+  fontSize: '0.9rem',
+  color: '#fff',
+  fontFamily: 'monospace',
+  wordBreak: 'break-word'
+}
 
-          <h3>发布详情</h3>
-          
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-            <div style={formGroupStyle}>
-              <label>目录号</label>
-              <input
-                type="text"
-                value={formData.catalog}
-                onChange={e => setFormData({...formData, catalog: e.target.value})}
-                style={modalInputStyle}
-                placeholder="YR0189"
-              />
-            </div>
+const logMetaStyle = {
+  marginTop: '0.5rem',
+  fontSize: '0.8rem',
+  color: '#666'
+}
 
-            <div style={formGroupStyle}>
-              <label>专辑名称</label>
-              <input
-                type="text"
-                value={formData.album}
-                onChange={e => setFormData({...formData, album: e.target.value})}
-                style={modalInputStyle}
-              />
-            </div>
-
-            <div style={formGroupStyle}>
-              <label>发布类型</label>
-              <input
-                type="text"
-                value={formData.releaseType}
-                onChange={e => setFormData({...formData, releaseType: e.target.value})}
-                style={modalInputStyle}
-                placeholder="Album / EP"
-              />
-            </div>
-
-            <div style={formGroupStyle}>
-              <label>发布日期</label>
-              <input
-                type="text"
-                value={formData.releaseDate}
-                onChange={e => setFormData({...formData, releaseDate: e.target.value})}
-                style={modalInputStyle}
-                placeholder="20/09/2024"
-              />
-            </div>
-
-            <div style={formGroupStyle}>
-              <label>厂牌</label>
-              <input
-                type="text"
-                value={formData.label}
-                onChange={e => setFormData({...formData, label: e.target.value})}
-                style={modalInputStyle}
-                placeholder="YEAR0001"
-              />
-            </div>
-
-            <div style={formGroupStyle}>
-              <label>A&R</label>
-              <input
-                type="text"
-                value={formData.ar}
-                onChange={e => setFormData({...formData, ar: e.target.value})}
-                style={modalInputStyle}
-              />
-            </div>
-
-            <div style={formGroupStyle}>
-              <label>作词人</label>
-              <input
-                type="text"
-                value={formData.writer}
-                onChange={e => setFormData({...formData, writer: e.target.value})}
-                style={modalInputStyle}
-              />
-            </div>
-
-            <div style={formGroupStyle}>
-              <label>制作人</label>
-              <input
-                type="text"
-                value={formData.producer}
-                onChange={e => setFormData({...formData, producer: e.target.value})}
-                style={modalInputStyle}
-              />
-            </div>
-
-            <div style={formGroupStyle}>
-              <label>混音师</label>
-              <input
-                type="text"
-                value={formData.mixing}
-                onChange={e => setFormData({...formData, mixing: e.target.value})}
-                style={modalInputStyle}
-              />
-            </div>
-
-            <div style={formGroupStyle}>
-              <label>母带工程师</label>
-              <input
-                type="text"
-                value={formData.master}
-                onChange={e => setFormData({...formData, master: e.target.value})}
-                style={modalInputStyle}
-              />
-            </div>
-
-            <div style={formGroupStyle}>
-              <label>创意总监</label>
-              <input
-                type="text"
-                value={formData.creativeDirector}
-                onChange={e => setFormData({...formData, creativeDirector: e.target.value})}
-                style={modalInputStyle}
-              />
-            </div>
-
-            <div style={formGroupStyle}>
-              <label>艺术总监</label>
-              <input
-                type="text"
-                value={formData.artDirector}
-                onChange={e => setFormData({...formData, artDirector: e.target.value})}
-                style={modalInputStyle}
-              />
-            </div>
-          </div>
-
-          <div style={modalActionsStyle}>
-            <button type="button" onClick={onCancel} style={cancelButtonStyle}>
-              取消
-            </button>
-            <button type="submit" style={saveButtonStyle}>
-              保存更改
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  )
-} 
+ 

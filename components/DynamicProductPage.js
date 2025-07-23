@@ -11,7 +11,7 @@ export default function DynamicProductPage({ pageId, fallbackData, styles }) {
   useEffect(() => {
     const loadPageData = async () => {
       try {
-        console.log(`🔄 加载产品页面数据: ${pageId}`)
+        console.log(`📄 产品页面加载: ${pageId}`)
         
         const data = await getProductPage(pageId).catch(error => {
           console.warn(`⚠️ Firebase请求失败: ${error.message}`)
@@ -20,13 +20,13 @@ export default function DynamicProductPage({ pageId, fallbackData, styles }) {
         
         if (data && typeof data === 'object') {
           setPageData(data)
-          console.log(`✅ 产品页面数据加载成功: ${data.title}`)
+          console.log(`✅ 产品页面加载成功: ${data.title}`)
         } else {
-          console.log(`⚠️ 未找到产品页面数据，使用fallback: ${pageId}`)
+          console.log(`⚠️ 使用fallback数据: ${pageId}`)
           setPageData(fallbackData)
         }
       } catch (error) {
-        console.error(`❌ 产品页面数据加载失败: ${pageId}`, error)
+        console.error(`❌ 产品页面加载失败: ${pageId}`, error)
         setPageData(fallbackData)
         setError(error.message)
       } finally {

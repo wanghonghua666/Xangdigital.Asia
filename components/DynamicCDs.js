@@ -5,7 +5,7 @@ import Link from "next/link"
 import { getAllCDs } from "../lib/firebaseService"
 import styles from "../app/Home.module.css"
 
-export default function DynamicCDs({ isMobile, mobileCdItemStyle, desktopCdItemStyle, mobileCdImageStyle, desktopCdImageStyle }) {
+export default function DynamicCDs({ isMobile, mobileCdItemStyle, desktopCdItemStyle, mobileCdImageStyle, desktopCdImageStyle, onLoad }) {
   const [cdData, setCdData] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [isUsingFallback, setIsUsingFallback] = useState(false)
@@ -40,10 +40,14 @@ export default function DynamicCDs({ isMobile, mobileCdItemStyle, desktopCdItemS
     let mounted = true
     
     const loadCDs = async () => {
-      console.log('🎵 开始加载CD数据...')
-      
       try {
-        const cds = await getAllCDs()
+        // 设置超时，避免长时间等待
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Timeout')), 3000)
+        })
+        
+        const cdsPromise = getAllCDs()
+        const cds = await Promise.race([cdsPromise, timeoutPromise])
         
         if (!mounted) return
         
@@ -56,20 +60,33 @@ export default function DynamicCDs({ isMobile, mobileCdItemStyle, desktopCdItemS
               image: fixImagePath(cd.image)
             }))
           
-          console.log('✅ Firebase CD数据加载成功:', processedCDs.length, '个CD')
           setCdData(processedCDs)
           setIsUsingFallback(false)
+          
+          // 通知父组件数据加载成功
+          if (onLoad) {
+            onLoad(true)
+          }
         } else {
-          console.log('⚠️ Firebase返回空数据，使用默认CD数据')
           setCdData(defaultCDs)
           setIsUsingFallback(true)
+          
+          // 通知父组件数据加载完成（使用fallback）
+          if (onLoad) {
+            onLoad(true)
+          }
         }
       } catch (error) {
         if (!mounted) return
         
-        console.error('❌ DynamicCDs: Firebase加载失败，使用默认数据:', error)
+        console.warn('CD加载失败，使用默认数据:', error.message)
         setCdData(defaultCDs)
         setIsUsingFallback(true)
+        
+        // 通知父组件数据加载完成（使用fallback）
+        if (onLoad) {
+          onLoad(true)
+        }
       } finally {
         if (mounted) {
           setIsLoading(false)
@@ -77,23 +94,35 @@ export default function DynamicCDs({ isMobile, mobileCdItemStyle, desktopCdItemS
       }
     }
 
+    // 立即开始加载
     loadCDs()
     
     return () => {
       mounted = false
     }
-  }, [])
+  }, [onLoad])
 
   if (isLoading) {
     return (
-      <div style={{ color: 'white', fontSize: '1rem', opacity: 0.7 }}>
-        Loading CDs...
+      <div style={{ 
+        color: 'white', 
+        fontSize: '0.9rem', 
+        opacity: 0.7,
+        textAlign: 'center',
+        padding: '2rem',
+        fontFamily: 'JetBrains Mono, monospace'
+      }}>
+        加载中...
       </div>
     )
   }
 
   if (!cdData || cdData.length === 0) {
-    console.log('🚨 紧急fallback: 使用硬编码默认数据')
+    // 通知父组件数据加载完成（使用紧急fallback）
+    if (onLoad) {
+      onLoad(true)
+    }
+    
     return (
       <>
         {defaultCDs.map((cd, index) => (
@@ -105,7 +134,6 @@ export default function DynamicCDs({ isMobile, mobileCdItemStyle, desktopCdItemS
                 style={isMobile ? mobileCdImageStyle : desktopCdImageStyle}
                 className={`cd-image ${styles.cdImage}`}
                 onError={(e) => {
-                  console.warn('🖼️ 图片加载失败:', e.target.src)
                   e.target.src = '/placeholder.svg'
                 }}
               />

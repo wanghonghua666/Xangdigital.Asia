@@ -78,152 +78,140 @@ const mobileCdImageStyle = {
   transformStyle: "preserve-3d", // 3D效果支持
 }
 
+// 全局日志记录器
+const logToAdmin = (message, type = 'info') => {
+  const timestamp = new Date().toISOString()
+  const logEntry = {
+    timestamp,
+    message,
+    type,
+    url: window.location.href,
+    userAgent: navigator.userAgent
+  }
+  
+  // 存储到localStorage用于管理员查看
+  const logs = JSON.parse(localStorage.getItem('admin_logs') || '[]')
+  logs.push(logEntry)
+  
+  // 只保留最近100条日志
+  if (logs.length > 100) {
+    logs.splice(0, logs.length - 100)
+  }
+  
+  localStorage.setItem('admin_logs', JSON.stringify(logs))
+  
+  // 同时输出到控制台
+  const emoji = type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️'
+  console.log(`${emoji} [${timestamp}] ${message}`)
+}
+
 export default function Home() {
   const [isMobile, setIsMobile] = useState(false)
+  const [cdsLoaded, setCdsLoaded] = useState(false)
+  const [animationInitialized, setAnimationInitialized] = useState(false)
 
   useEffect(() => {
     // 移动端检测
     const checkMobile = () => {
-      setIsMobile(window.innerWidth <= 768)
+      const mobile = window.innerWidth <= 768
+      setIsMobile(mobile)
     }
 
     checkMobile()
     window.addEventListener("resize", checkMobile)
 
-    const container = document.querySelector(".cd-scroll")
-    if (!container) return
-
-    const updateCDs = () => {
-      const items = container.querySelectorAll(".cd-item")
-      const containerRect = container.getBoundingClientRect()
-      const centerX = containerRect.left + containerRect.width / 2
-
-      items.forEach((item) => {
-        const itemRect = item.getBoundingClientRect()
-        const itemCenterX = itemRect.left + itemRect.width / 2
-        const distance = Math.abs(centerX - itemCenterX)
-        const maxDistance = isMobile ? 150 : 200
-        const normalizedDistance = Math.min(distance / maxDistance, 1)
-
-        const img = item.querySelector("img")
-        if (img) {
-          const scale = 1 - normalizedDistance * 0.3
-          const opacity = 0.6 + (1 - normalizedDistance) * 0.4
-          
-          // 使用CSS自定义属性，不干扰hover效果
-          img.style.setProperty('--dynamic-scale', scale)
-          img.style.setProperty('--dynamic-opacity', opacity)
-          img.style.transition = 'all 0.3s ease'
-          
-          // 判断是否为中心CD，给中心CD添加特殊类名
-          const isCenter = distance < 50
-          if (isCenter) {
-            img.classList.add('center-cd')
-          } else {
-            img.classList.remove('center-cd')
-          }
-          
-          img.style.cursor = "pointer"
-          
-          // 清除之前的事件
-          img.onclick = null
-          
-          if (!isCenter) {
-            // 非中心CD点击后滚动到中心
-            img.onclick = (e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              
-              const containerRect = container.getBoundingClientRect()
-              const itemRect = item.getBoundingClientRect()
-              const centerX = containerRect.width / 2
-              const itemCenterX = itemRect.left + itemRect.width / 2 - containerRect.left
-              const targetScrollLeft = container.scrollLeft + (itemCenterX - centerX)
-
-              container.scrollTo({
-                left: targetScrollLeft,
-                behavior: "smooth",
-              })
-            }
-          }
+    // 等待CD数据加载完成后再初始化动画
+          const initializeAnimation = () => {
+        const container = document.querySelector(".cd-scroll")
+        if (!container) {
+          return false
         }
-      })
-    }
 
-    // 自动吸附功能
-    let scrollTimeout
-    const snapToCenter = () => {
-      const items = container.querySelectorAll(".cd-item")
-      const containerRect = container.getBoundingClientRect()
-      const centerX = containerRect.left + containerRect.width / 2
-
-      let closestItem = null
-      let minDistance = Number.POSITIVE_INFINITY
-
-      items.forEach((item) => {
-        const itemRect = item.getBoundingClientRect()
-        const itemCenterX = itemRect.left + itemRect.width / 2
-        const distance = Math.abs(centerX - itemCenterX)
-
-        if (distance < minDistance) {
-          minDistance = distance
-          closestItem = item
+        const items = container.querySelectorAll(".cd-item")
+        if (items.length === 0) {
+          return false
         }
-      })
 
-      if (closestItem && minDistance > 15) {
-        const itemRect = closestItem.getBoundingClientRect()
-        const itemCenterX = itemRect.left + itemRect.width / 2
-        const offset = itemCenterX - centerX
-
-        container.scrollBy({
-          left: offset,
-          behavior: "smooth",
-        })
-      }
-    }
-
-    const handleScroll = () => {
-      updateCDs()
-      
-      // 防抖动的自动吸附
-      clearTimeout(scrollTimeout)
-      scrollTimeout = setTimeout(() => {
-        snapToCenter()
-      }, 150)
-    }
-
-    // 键盘导航
-    const handleKeyDown = (e) => {
-      if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
-        e.preventDefault()
-
-        const direction = e.key === "ArrowLeft" ? -1 : 1
+      const updateCDs = () => {
         const items = container.querySelectorAll(".cd-item")
         const containerRect = container.getBoundingClientRect()
         const centerX = containerRect.left + containerRect.width / 2
 
-        // 找到当前中心的CD
-        let currentIndex = -1
+        items.forEach((item, index) => {
+          const itemRect = item.getBoundingClientRect()
+          const itemCenterX = itemRect.left + itemRect.width / 2
+          const distance = Math.abs(centerX - itemCenterX)
+          const maxDistance = isMobile ? 150 : 200
+          const normalizedDistance = Math.min(distance / maxDistance, 1)
+
+          const img = item.querySelector("img")
+          if (img) {
+            const scale = 1 - normalizedDistance * 0.3
+            const opacity = 0.6 + (1 - normalizedDistance) * 0.4
+            
+            // 使用CSS自定义属性，不干扰hover效果
+            img.style.setProperty('--dynamic-scale', scale)
+            img.style.setProperty('--dynamic-opacity', opacity)
+            img.style.transition = 'all 0.3s ease'
+            
+            // 判断是否为中心CD，给中心CD添加特殊类名
+            const isCenter = distance < 50
+            if (isCenter) {
+              img.classList.add('center-cd')
+            } else {
+              img.classList.remove('center-cd')
+            }
+            
+            img.style.cursor = "pointer"
+            
+            // 清除之前的事件
+            img.onclick = null
+            
+            if (!isCenter) {
+              // 非中心CD点击后滚动到中心
+              img.onclick = (e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                
+                const containerRect = container.getBoundingClientRect()
+                const itemRect = item.getBoundingClientRect()
+                const centerX = containerRect.width / 2
+                const itemCenterX = itemRect.left + itemRect.width / 2 - containerRect.left
+                const targetScrollLeft = container.scrollLeft + (itemCenterX - centerX)
+
+                container.scrollTo({
+                  left: targetScrollLeft,
+                  behavior: "smooth",
+                })
+              }
+            }
+          }
+        })
+      }
+
+      // 自动吸附功能
+      let scrollTimeout
+      const snapToCenter = () => {
+        const items = container.querySelectorAll(".cd-item")
+        const containerRect = container.getBoundingClientRect()
+        const centerX = containerRect.left + containerRect.width / 2
+
+        let closestItem = null
         let minDistance = Number.POSITIVE_INFINITY
 
-        items.forEach((item, index) => {
+        items.forEach((item) => {
           const itemRect = item.getBoundingClientRect()
           const itemCenterX = itemRect.left + itemRect.width / 2
           const distance = Math.abs(centerX - itemCenterX)
 
           if (distance < minDistance) {
             minDistance = distance
-            currentIndex = index
+            closestItem = item
           }
         })
 
-        // 移动到下一个CD
-        const nextIndex = Math.max(0, Math.min(items.length - 1, currentIndex + direction))
-        const nextItem = items[nextIndex]
-
-        if (nextItem) {
-          const itemRect = nextItem.getBoundingClientRect()
+        if (closestItem && minDistance > 15) {
+          const itemRect = closestItem.getBoundingClientRect()
           const itemCenterX = itemRect.left + itemRect.width / 2
           const offset = itemCenterX - centerX
 
@@ -233,41 +221,133 @@ export default function Home() {
           })
         }
       }
-    }
 
-    container.addEventListener("scroll", handleScroll, { passive: true })
-    document.addEventListener("keydown", handleKeyDown)
-
-    // 初始化 - 居中第一个CD
-    const init = () => {
-      const items = container.querySelectorAll(".cd-item")
-      if (items.length > 0) {
-        // 计算第一个CD应该居中的滚动位置
-        const containerRect = container.getBoundingClientRect()
-        const itemRect = items[0].getBoundingClientRect()
-        const containerCenter = containerRect.width / 2
-        const itemCenter = itemRect.left + itemRect.width / 2 - containerRect.left
-        const requiredScroll = itemCenter - containerCenter
+      const handleScroll = () => {
+        updateCDs()
         
-        // 设置滚动位置
-        container.scrollLeft = container.scrollLeft + requiredScroll
-        
-        // 应用视觉效果
-        setTimeout(() => {
-          updateCDs()
-        }, 10)
+        // 防抖动的自动吸附
+        clearTimeout(scrollTimeout)
+        scrollTimeout = setTimeout(() => {
+          snapToCenter()
+        }, 150)
       }
+
+      // 键盘导航
+      const handleKeyDown = (e) => {
+        if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+          e.preventDefault()
+
+          const direction = e.key === "ArrowLeft" ? -1 : 1
+          const items = container.querySelectorAll(".cd-item")
+          const containerRect = container.getBoundingClientRect()
+          const centerX = containerRect.left + containerRect.width / 2
+
+          // 找到当前中心的CD
+          let currentIndex = -1
+          let minDistance = Number.POSITIVE_INFINITY
+
+          items.forEach((item, index) => {
+            const itemRect = item.getBoundingClientRect()
+            const itemCenterX = itemRect.left + itemRect.width / 2
+            const distance = Math.abs(centerX - itemCenterX)
+
+            if (distance < minDistance) {
+              minDistance = distance
+              currentIndex = index
+            }
+          })
+
+          // 移动到下一个CD
+          const nextIndex = Math.max(0, Math.min(items.length - 1, currentIndex + direction))
+          const nextItem = items[nextIndex]
+
+          if (nextItem) {
+            const itemRect = nextItem.getBoundingClientRect()
+            const itemCenterX = itemRect.left + itemRect.width / 2
+            const offset = itemCenterX - centerX
+
+            container.scrollBy({
+              left: offset,
+              behavior: "smooth",
+            })
+          }
+        }
+      }
+
+      container.addEventListener("scroll", handleScroll, { passive: true })
+      document.addEventListener("keydown", handleKeyDown)
+
+      // 初始化 - 居中第一个CD
+      const init = () => {
+        const items = container.querySelectorAll(".cd-item")
+        if (items.length > 0) {
+          // 计算第一个CD应该居中的滚动位置
+          const containerRect = container.getBoundingClientRect()
+          const itemRect = items[0].getBoundingClientRect()
+          const containerCenter = containerRect.width / 2
+          const itemCenter = itemRect.left + itemRect.width / 2 - containerRect.left
+          const requiredScroll = itemCenter - containerCenter
+          
+          // 设置滚动位置
+          container.scrollLeft = container.scrollLeft + requiredScroll
+          
+          // 立即应用视觉效果
+          updateCDs()
+        }
+      }
+
+      // 立即初始化，减少延迟
+      init()
+
+      return true // 返回true表示初始化成功
     }
 
-    setTimeout(init, 300)
+    // 使用MutationObserver监听DOM变化
+    const observer = new MutationObserver((mutations) => {
+      if (!animationInitialized && cdsLoaded) {
+        const success = initializeAnimation()
+        if (success) {
+          setAnimationInitialized(true)
+          observer.disconnect()
+        }
+      }
+    })
+
+    // 监听整个文档的变化
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    })
+
+    // 定期检查初始化 - 更频繁的检查
+    const initCheckInterval = setInterval(() => {
+      if (!animationInitialized && cdsLoaded) {
+        const success = initializeAnimation()
+        if (success) {
+          setAnimationInitialized(true)
+          clearInterval(initCheckInterval)
+          observer.disconnect()
+        }
+      }
+    }, 50) // 进一步减少到50ms
+
+    // 1秒后强制停止检查 - 进一步减少超时时间
+    setTimeout(() => {
+      clearInterval(initCheckInterval)
+      observer.disconnect()
+    }, 1000) // 从2秒减少到1秒
 
     return () => {
-      container.removeEventListener("scroll", handleScroll)
-      document.removeEventListener("keydown", handleKeyDown)
       window.removeEventListener("resize", checkMobile)
-      clearTimeout(scrollTimeout)
+      observer.disconnect()
+      clearInterval(initCheckInterval)
     }
-  }, [isMobile])
+  }, [isMobile, cdsLoaded, animationInitialized])
+
+  // CD数据加载完成回调
+  const handleCDsLoaded = (loaded) => {
+    setCdsLoaded(loaded)
+  }
 
   return (
     <>
@@ -305,6 +385,7 @@ export default function Home() {
                 desktopCdItemStyle={desktopCdItemStyle}
                 mobileCdImageStyle={mobileCdImageStyle}
                 desktopCdImageStyle={desktopCdImageStyle}
+                onLoad={handleCDsLoaded}
               />
 
               <div style={{ minWidth: "50vw" }}></div>
@@ -369,6 +450,8 @@ export default function Home() {
         </main>
 
         <DeveloperMode />
+        
+
       </div>
 
 
