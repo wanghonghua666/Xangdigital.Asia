@@ -31,34 +31,43 @@ export default function UnifiedDataManager({
 
   // 加载数据
   const loadData = async () => {
+    console.log(`🔄 [UnifiedDataManager] 开始加载 ${type} 数据...`)
     setIsLoading(true)
     try {
       const result = await manager.getAll()
+      console.log(`✅ [UnifiedDataManager] ${type} 数据加载成功，共 ${result.length} 个`)
       setData(result)
     } catch (error) {
-      console.error(`Error loading ${type}:`, error)
+      console.error(`❌ [UnifiedDataManager] 加载 ${type} 失败:`, error)
       setError(`加载${title}失败: ${error.message}`)
     } finally {
       setIsLoading(false)
+      console.log(`✅ [UnifiedDataManager] ${type} 数据加载完成`)
     }
   }
 
   // 创建新项目
   const handleCreate = async () => {
+    console.log(`🆕 [UnifiedDataManager] 创建新的 ${type} 项目`)
     const newItem = { ...defaultData }
     setEditingItem(newItem)
   }
 
   // 保存数据
   const handleSave = async (itemData) => {
+    console.log(`💾 [UnifiedDataManager] 开始保存 ${type} 数据...`)
     setIsLoading(true)
     try {
       if (editingItem.firestoreId) {
         // 更新现有项目 - 使用Firestore文档ID
+        console.log(`🔄 [UnifiedDataManager] 更新现有 ${type}，ID: ${editingItem.firestoreId}`)
         await manager.update(editingItem.firestoreId, itemData)
+        console.log(`✅ [UnifiedDataManager] ${type} 更新成功`)
       } else {
         // 创建新项目
+        console.log(`🆕 [UnifiedDataManager] 创建新的 ${type} 项目`)
         const newId = await manager.create(itemData)
+        console.log(`✅ [UnifiedDataManager] ${type} 创建成功，ID: ${newId}`)
         itemData.firestoreId = newId
       }
       
@@ -66,10 +75,11 @@ export default function UnifiedDataManager({
       setEditingItem(null)
       if (onDataChange) onDataChange()
     } catch (error) {
-      console.error(`Error saving ${type}:`, error)
+      console.error(`❌ [UnifiedDataManager] 保存 ${type} 失败:`, error)
       setError(`保存${title}失败: ${error.message}`)
     } finally {
       setIsLoading(false)
+      console.log(`✅ [UnifiedDataManager] ${type} 保存操作完成`)
     }
   }
 
@@ -77,16 +87,19 @@ export default function UnifiedDataManager({
   const handleDelete = async (id) => {
     if (!confirm(`确定要删除这个${title}吗？`)) return
     
+    console.log(`🗑️ [UnifiedDataManager] 开始删除 ${type}，ID: ${id}`)
     setIsLoading(true)
     try {
       await manager.delete(id)
+      console.log(`✅ [UnifiedDataManager] ${type} 删除成功`)
       await loadData()
       if (onDataChange) onDataChange()
     } catch (error) {
-      console.error(`Error deleting ${type}:`, error)
+      console.error(`❌ [UnifiedDataManager] 删除 ${type} 失败:`, error)
       setError(`删除${title}失败: ${error.message}`)
     } finally {
       setIsLoading(false)
+      console.log(`✅ [UnifiedDataManager] ${type} 删除操作完成`)
     }
   }
 
@@ -101,7 +114,7 @@ export default function UnifiedDataManager({
   return (
     <div style={contentStyle}>
       <div style={sectionHeaderStyle}>
-        <h2>{title}管理</h2>
+        <h2 style={sectionTitleStyle}>{title}管理</h2>
         <button onClick={handleCreate} style={createButtonStyle}>
           新增{title}
         </button>
@@ -123,10 +136,10 @@ export default function UnifiedDataManager({
               />
             )}
             <div style={cardContentStyle}>
-              <h3>{item.title || item.name || `项目 ${item.id || item.firestoreId}`}</h3>
-              {item.price && <p>价格: €{item.price}</p>}
-              {item.description && <p>{item.description}</p>}
-              <p>状态: {item.visible ? '显示' : '隐藏'}</p>
+              <h3 style={cardTitleStyle}>{item.title || item.name || `项目 ${item.id || item.firestoreId}`}</h3>
+              {item.price && <p style={cardTextStyle}>价格: {item.price}</p>}
+              {item.description && <p style={cardTextStyle}>{item.description}</p>}
+              <p style={cardTextStyle}>状态: {item.visible ? '显示' : '隐藏'}</p>
               <div style={cardActionsStyle}>
                 <button 
                   onClick={() => setEditingItem(item)}
@@ -200,7 +213,7 @@ function UnifiedEditModal({ item, fields, availableImages, onSave, onCancel, tit
       case 'textarea':
         return (
           <div key={name} style={formGroupStyle}>
-            <label>{label}:</label>
+            <label style={modalLabelStyle}>{label}:</label>
             <textarea
               value={currentValue || ''}
               onChange={(e) => setFormData(setNestedValue(formData, name, e.target.value))}
@@ -214,7 +227,7 @@ function UnifiedEditModal({ item, fields, availableImages, onSave, onCancel, tit
       case 'select':
         return (
           <div key={name} style={formGroupStyle}>
-            <label>{label}:</label>
+            <label style={modalLabelStyle}>{label}:</label>
             <select
               value={currentValue || ''}
               onChange={(e) => setFormData(setNestedValue(formData, name, e.target.value))}
@@ -234,7 +247,7 @@ function UnifiedEditModal({ item, fields, availableImages, onSave, onCancel, tit
       case 'image':
         return (
           <div key={name} style={formGroupStyle}>
-            <label>{label}:</label>
+            <label style={modalLabelStyle}>{label}:</label>
             <select
               value={currentValue || ''}
               onChange={(e) => setFormData(setNestedValue(formData, name, e.target.value))}
@@ -256,7 +269,7 @@ function UnifiedEditModal({ item, fields, availableImages, onSave, onCancel, tit
       case 'checkbox':
         return (
           <div key={name} style={formGroupStyle}>
-            <label>
+            <label style={modalLabelStyle}>
               <input
                 type="checkbox"
                 checked={currentValue || false}
@@ -270,7 +283,7 @@ function UnifiedEditModal({ item, fields, availableImages, onSave, onCancel, tit
       case 'number':
         return (
           <div key={name} style={formGroupStyle}>
-            <label>{label}:</label>
+            <label style={modalLabelStyle}>{label}:</label>
             <input
               type="number"
               value={currentValue || ''}
@@ -284,7 +297,7 @@ function UnifiedEditModal({ item, fields, availableImages, onSave, onCancel, tit
       default:
         return (
           <div key={name} style={formGroupStyle}>
-            <label>{label}:</label>
+            <label style={modalLabelStyle}>{label}:</label>
             <input
               type="text"
               value={currentValue || ''}
@@ -300,7 +313,7 @@ function UnifiedEditModal({ item, fields, availableImages, onSave, onCancel, tit
   return (
     <div style={modalOverlayStyle}>
       <div style={modalStyle}>
-        <h2>编辑{title}</h2>
+        <h2 style={modalTitleStyle}>编辑{title}</h2>
         <form onSubmit={handleSubmit}>
           {fields.map(renderField)}
           <div style={modalActionsStyle}>
@@ -313,44 +326,71 @@ function UnifiedEditModal({ item, fields, availableImages, onSave, onCancel, tit
   )
 }
 
-// 样式定义
+// 样式定义 - 统一使用JetBrains Mono字体
 const contentStyle = {
-  padding: '1rem'
+  padding: '2rem'
 }
 
 const sectionHeaderStyle = {
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
-  marginBottom: '1rem'
+  marginBottom: '2rem'
+}
+
+const sectionTitleStyle = {
+  fontFamily: '"JetBrains Mono", monospace',
+  fontSize: '1.5rem',
+  color: 'red',
+  fontWeight: 'lighter',
+  letterSpacing: '1.4px',
+  transform: 'scaleY(0.8)',
+  margin: 0
 }
 
 const gridStyle = {
   display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
-  gap: '1rem'
+  gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+  gap: '1.5rem'
 }
 
 const cardStyle = {
-  background: 'rgba(0, 0, 0, 0.5)',
+  background: 'rgba(0, 0, 0, 0.7)',
   borderRadius: '8px',
   overflow: 'hidden',
-  border: '1px solid #333'
+  border: '1px solid #333',
+  transition: 'transform 0.2s ease'
 }
 
 const cardImageStyle = {
   width: '100%',
-  height: '150px',
+  height: '180px',
   objectFit: 'cover'
 }
 
 const cardContentStyle = {
-  padding: '1rem'
+  padding: '1.5rem'
+}
+
+const cardTitleStyle = {
+  fontFamily: '"JetBrains Mono", monospace',
+  fontSize: '1.1rem',
+  color: 'white',
+  fontWeight: 'lighter',
+  letterSpacing: '1px',
+  margin: '0 0 0.5rem 0'
+}
+
+const cardTextStyle = {
+  fontFamily: '"JetBrains Mono", monospace',
+  fontSize: '0.9rem',
+  color: 'rgb(156, 163, 175)',
+  margin: '0.25rem 0'
 }
 
 const cardActionsStyle = {
   display: 'flex',
-  gap: '0.5rem',
+  gap: '0.75rem',
   marginTop: '1rem'
 }
 
@@ -361,7 +401,10 @@ const createButtonStyle = {
   border: 'none',
   borderRadius: '4px',
   cursor: 'pointer',
-  fontFamily: 'monospace'
+  fontFamily: '"JetBrains Mono", monospace',
+  fontSize: '0.9rem',
+  letterSpacing: '1px',
+  transition: 'background-color 0.2s ease'
 }
 
 const editButtonStyle = {
@@ -371,7 +414,10 @@ const editButtonStyle = {
   border: 'none',
   borderRadius: '4px',
   cursor: 'pointer',
-  fontFamily: 'monospace'
+  fontFamily: '"JetBrains Mono", monospace',
+  fontSize: '0.9rem',
+  letterSpacing: '1px',
+  transition: 'background-color 0.2s ease'
 }
 
 const deleteButtonStyle = {
@@ -381,15 +427,19 @@ const deleteButtonStyle = {
   border: 'none',
   borderRadius: '4px',
   cursor: 'pointer',
-  fontFamily: 'monospace'
+  fontFamily: '"JetBrains Mono", monospace',
+  fontSize: '0.9rem',
+  letterSpacing: '1px',
+  transition: 'background-color 0.2s ease'
 }
 
 const errorBannerStyle = {
   background: '#dc3545',
   color: 'white',
-  padding: '0.5rem',
+  padding: '0.75rem',
   borderRadius: '4px',
-  marginBottom: '1rem'
+  marginBottom: '1.5rem',
+  fontFamily: '"JetBrains Mono", monospace'
 }
 
 const modalOverlayStyle = {
@@ -406,17 +456,38 @@ const modalOverlayStyle = {
 }
 
 const modalStyle = {
-  background: '#2d2d2d',
+  background: 'rgba(0, 0, 0, 0.9)',
   padding: '2rem',
   borderRadius: '8px',
   width: '90%',
-  maxWidth: '500px',
+  maxWidth: '600px',
   maxHeight: '80vh',
-  overflow: 'auto'
+  overflow: 'auto',
+  border: '1px solid #333'
+}
+
+const modalTitleStyle = {
+  fontFamily: '"JetBrains Mono", monospace',
+  fontSize: '1.3rem',
+  color: 'red',
+  fontWeight: 'lighter',
+  letterSpacing: '1.4px',
+  transform: 'scaleY(0.8)',
+  margin: '0 0 1.5rem 0'
+}
+
+const modalLabelStyle = {
+  fontFamily: '"JetBrains Mono", monospace',
+  fontSize: '0.9rem',
+  color: 'white',
+  fontWeight: 'lighter',
+  letterSpacing: '1px',
+  marginBottom: '0.5rem',
+  display: 'block'
 }
 
 const formGroupStyle = {
-  marginBottom: '1rem'
+  marginBottom: '1.5rem'
 }
 
 const modalInputStyle = {
@@ -426,14 +497,16 @@ const modalInputStyle = {
   border: '1px solid rgba(255, 255, 255, 0.2)',
   borderRadius: '4px',
   color: 'white',
-  fontFamily: 'monospace',
+  fontFamily: '"JetBrains Mono", monospace',
+  fontSize: '0.9rem',
   marginTop: '0.5rem',
   boxSizing: 'border-box'
 }
 
 const modalTextareaStyle = {
   ...modalInputStyle,
-  resize: 'vertical'
+  resize: 'vertical',
+  minHeight: '100px'
 }
 
 const modalSelectStyle = {
@@ -452,7 +525,7 @@ const modalActionsStyle = {
   display: 'flex',
   gap: '1rem',
   justifyContent: 'flex-end',
-  marginTop: '1rem'
+  marginTop: '1.5rem'
 }
 
 const saveButtonStyle = {
@@ -462,7 +535,9 @@ const saveButtonStyle = {
   border: 'none',
   borderRadius: '4px',
   cursor: 'pointer',
-  fontFamily: 'monospace'
+  fontFamily: '"JetBrains Mono", monospace',
+  fontSize: '0.9rem',
+  letterSpacing: '1px'
 }
 
 const cancelButtonStyle = {
@@ -472,5 +547,7 @@ const cancelButtonStyle = {
   border: 'none',
   borderRadius: '4px',
   cursor: 'pointer',
-  fontFamily: 'monospace'
+  fontFamily: '"JetBrains Mono", monospace',
+  fontSize: '0.9rem',
+  letterSpacing: '1px'
 } 

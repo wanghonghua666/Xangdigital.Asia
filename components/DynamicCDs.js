@@ -9,6 +9,15 @@ export default function DynamicCDs({ isMobile, mobileCdItemStyle, desktopCdItemS
   const [cdData, setCdData] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [isUsingFallback, setIsUsingFallback] = useState(false)
+  
+  // 立即显示默认数据，避免空白
+  useEffect(() => {
+    if (cdData.length === 0) {
+      setCdData(defaultCDs)
+      setIsUsingFallback(true)
+      if (onLoad) onLoad(true)
+    }
+  }, [])
 
   // 默认CD数据作为fallback - 确保路径正确
   const defaultCDs = [
@@ -41,9 +50,11 @@ export default function DynamicCDs({ isMobile, mobileCdItemStyle, desktopCdItemS
     
     const loadCDs = async () => {
       try {
-        // 设置超时，避免长时间等待
+        console.log(`🔄 [DynamicCDs] 开始加载CD数据...`)
+        
+        // 减少超时时间到1秒，提高响应速度
         const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Timeout')), 3000)
+          setTimeout(() => reject(new Error('Timeout')), 1000)
         })
         
         const cdsPromise = getAllCDs()
@@ -52,6 +63,7 @@ export default function DynamicCDs({ isMobile, mobileCdItemStyle, desktopCdItemS
         if (!mounted) return
         
         if (cds && cds.length > 0) {
+          console.log(`✅ [DynamicCDs] Firebase CD数据加载成功，共 ${cds.length} 个CD`)
           // 修复可能的路径问题并过滤显示的CD
           const processedCDs = cds
             .filter(cd => cd.visible !== false)
@@ -68,6 +80,7 @@ export default function DynamicCDs({ isMobile, mobileCdItemStyle, desktopCdItemS
             onLoad(true)
           }
         } else {
+          console.log(`🔄 [DynamicCDs] Firebase无数据，使用默认CD数据`)
           setCdData(defaultCDs)
           setIsUsingFallback(true)
           
@@ -79,7 +92,7 @@ export default function DynamicCDs({ isMobile, mobileCdItemStyle, desktopCdItemS
       } catch (error) {
         if (!mounted) return
         
-        console.warn('CD加载失败，使用默认数据:', error.message)
+        console.warn(`⚠️ [DynamicCDs] CD加载失败，使用默认数据:`, error.message)
         setCdData(defaultCDs)
         setIsUsingFallback(true)
         
@@ -90,6 +103,7 @@ export default function DynamicCDs({ isMobile, mobileCdItemStyle, desktopCdItemS
       } finally {
         if (mounted) {
           setIsLoading(false)
+          console.log(`✅ [DynamicCDs] CD数据加载完成`)
         }
       }
     }
@@ -163,28 +177,34 @@ export default function DynamicCDs({ isMobile, mobileCdItemStyle, desktopCdItemS
         </div>
       )}
       
-      {cdData.map((cd, index) => (
-        <div key={cd.id || index} className={`cd-item ${styles.cdItem}`} style={isMobile ? mobileCdItemStyle : desktopCdItemStyle}>
-          <Link href={cd.productLink || '#'}>
-            <img
-              src={fixImagePath(cd.image)}
-              alt={cd.title || `Album ${index + 1}`}
-              style={isMobile ? mobileCdImageStyle : desktopCdImageStyle}
-              className={`cd-image ${styles.cdImage}`}
-              onError={(e) => {
-                console.warn('🖼️ 图片加载失败:', e.target.src)
-                // 尝试修复路径
-                const fixedSrc = fixImagePath(e.target.src)
-                if (fixedSrc !== e.target.src) {
-                  e.target.src = fixedSrc
-                } else {
-                  e.target.src = '/placeholder.svg'
-                }
+              {cdData.map((cd, index) => (
+          <div key={cd.id || index} className={`cd-item ${styles.cdItem}`} style={isMobile ? mobileCdItemStyle : desktopCdItemStyle}>
+            <Link 
+              href={`${cd.productLink || '#'}?from=${encodeURIComponent('/')}`}
+              onClick={() => {
+                // 存储来源信息到sessionStorage
+                sessionStorage.setItem('productPageFrom', '/')
               }}
-            />
-          </Link>
-        </div>
-      ))}
+            >
+              <img
+                src={fixImagePath(cd.image)}
+                alt={cd.title || `Album ${index + 1}`}
+                style={isMobile ? mobileCdImageStyle : desktopCdImageStyle}
+                className={`cd-image ${styles.cdImage}`}
+                onError={(e) => {
+                  console.warn('🖼️ 图片加载失败:', e.target.src)
+                  // 尝试修复路径
+                  const fixedSrc = fixImagePath(e.target.src)
+                  if (fixedSrc !== e.target.src) {
+                    e.target.src = fixedSrc
+                  } else {
+                    e.target.src = '/placeholder.svg'
+                  }
+                }}
+              />
+            </Link>
+          </div>
+        ))}
     </>
   )
 } 

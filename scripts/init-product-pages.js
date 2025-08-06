@@ -20,6 +20,7 @@ const defaultProductPages = [
     description: '140g white 12\" vinyl, printed inner sleeve.',
     image: '/cd/album-art.png',
     price: '€23.00',
+    visible: true,
     trackList: [
       'A1 · HAPPY BOY',
       'A2 · YOU', 
@@ -51,6 +52,7 @@ const defaultProductPages = [
     description: 'Digital EP release.',
     image: '/cd/album-cover.png',
     price: '€15.00',
+    visible: true,
     trackList: [
       'A1 · INTRO',
       'A2 · OSHAMAMBE THEME'

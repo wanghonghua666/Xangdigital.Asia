@@ -2,6 +2,7 @@
 
 import { useState, useEffect, use } from "react"
 import Link from "next/link"
+import { useRouter, useSearchParams } from "next/navigation"
 import { getProductPage } from "../../../lib/firebaseService"
 import styles from "./product.module.css"
 
@@ -9,33 +10,87 @@ export default function DynamicProductPage({ params }) {
   const [pageData, setPageData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [backUrl, setBackUrl] = useState("/")
   
   // 使用React.use()解包params
   const resolvedParams = use(params)
   const slug = resolvedParams.slug
+  const router = useRouter()
+  const searchParams = useSearchParams()
 
   useEffect(() => {
+    // 智能返回导航逻辑
+    const determineBackUrl = () => {
+      console.log(`🧭 [PRODUCT_PAGE] 开始确定返回URL，slug: ${slug}`)
+      
+      // 1. 检查URL参数中的来源
+      const from = searchParams.get('from')
+      if (from) {
+        const decodedFrom = decodeURIComponent(from)
+        console.log(`✅ [PRODUCT_PAGE] 从URL参数获取来源: ${decodedFrom}`)
+        setBackUrl(decodedFrom)
+        return
+      }
+      
+      // 2. 检查sessionStorage中的来源
+      const storedFrom = sessionStorage.getItem('productPageFrom')
+      if (storedFrom) {
+        console.log(`✅ [PRODUCT_PAGE] 从sessionStorage获取来源: ${storedFrom}`)
+        setBackUrl(storedFrom)
+        return
+      }
+      
+      // 3. 检查referrer
+      if (document.referrer) {
+        const referrer = new URL(document.referrer)
+        console.log(`🔍 [PRODUCT_PAGE] 检查referrer: ${referrer.pathname}`)
+        if (referrer.pathname === '/shop') {
+          console.log(`✅ [PRODUCT_PAGE] 从referrer确定来源: /shop`)
+          setBackUrl('/shop')
+          return
+        }
+        if (referrer.pathname === '/') {
+          console.log(`✅ [PRODUCT_PAGE] 从referrer确定来源: /`)
+          setBackUrl('/')
+          return
+        }
+      }
+      
+      // 4. 默认返回首页
+      console.log(`✅ [PRODUCT_PAGE] 使用默认返回URL: /`)
+      setBackUrl('/')
+    }
+    
+    determineBackUrl()
+  }, [searchParams, slug])
+  
+  useEffect(() => {
     const loadPageData = async () => {
+      console.log(`📄 [PRODUCT_PAGE] 开始加载产品页面数据，slug: ${slug}`)
       try {
-        console.log(`📄 动态产品页面加载: ${slug}`)
-        
         const data = await getProductPage(slug).catch(error => {
-          console.warn(`⚠️ Firebase请求失败: ${error.message}`)
+          console.warn(`⚠️ [PRODUCT_PAGE] Firebase请求失败: ${error.message}`)
           return null
         })
         
         if (data && typeof data === 'object') {
+          console.log(`✅ [PRODUCT_PAGE] 产品页面数据加载成功:`, {
+            title: data.title,
+            price: data.price,
+            hasTrackList: !!data.trackList,
+            hasDetails: !!data.details
+          })
           setPageData(data)
-          console.log(`✅ 动态产品页面加载成功: ${data.title}`)
         } else {
-          console.log(`⚠️ 未找到产品数据: ${slug}`)
+          console.log(`❌ [PRODUCT_PAGE] 产品不存在: ${slug}`)
           setError('产品不存在')
         }
       } catch (error) {
-        console.error(`❌ 动态产品页面加载失败: ${slug}`, error)
+        console.error(`❌ [PRODUCT_PAGE] 动态产品页面加载失败: ${slug}`, error)
         setError(error.message)
       } finally {
         setLoading(false)
+        console.log(`✅ [PRODUCT_PAGE] 产品页面数据加载完成`)
       }
     }
 
@@ -49,7 +104,7 @@ export default function DynamicProductPage({ params }) {
       <div className={styles.wrapper}>
         <div className={styles.overlay}></div>
         <header className={styles.header}>
-          <Link href="/" className={styles.backButton}>
+          <Link href={backUrl} className={styles.backButton}>
             ← BACK
           </Link>
           <h1 className={styles.siteTitle}>XANGDIGITAL.ASIA</h1>
@@ -70,7 +125,7 @@ export default function DynamicProductPage({ params }) {
       <div className={styles.wrapper}>
         <div className={styles.overlay}></div>
         <header className={styles.header}>
-          <Link href="/" className={styles.backButton}>
+          <Link href={backUrl} className={styles.backButton}>
             ← BACK
           </Link>
           <h1 className={styles.siteTitle}>XANGDIGITAL.ASIA</h1>
@@ -95,7 +150,7 @@ export default function DynamicProductPage({ params }) {
       <div className={styles.overlay}></div>
       
       <header className={styles.header}>
-        <Link href="/" className={styles.backButton}>
+        <Link href={backUrl} className={styles.backButton}>
           ← BACK
         </Link>
         <h1 className={styles.siteTitle}>XANGDIGITAL.ASIA</h1>
@@ -113,12 +168,27 @@ export default function DynamicProductPage({ params }) {
               {pageData.description}
             </p>
             
-            {pageData.trackList && pageData.trackList.length > 0 && (
+            {pageData.trackList && (
               <div className={styles.trackList}>
                 <h3>TRACKLIST:</h3>
-                {pageData.trackList.map((track, index) => (
-                  <p key={index}>{track}</p>
-                ))}
+                {(() => {
+                  // 处理trackList可能是字符串或数组的情况
+                  let tracks = pageData.trackList
+                  if (typeof tracks === 'string') {
+                    // 如果是字符串，按换行符分割
+                    tracks = tracks.split('\n').filter(track => track.trim())
+                  } else if (Array.isArray(tracks)) {
+                    // 如果已经是数组，直接使用
+                    tracks = tracks.filter(track => track && track.trim())
+                  } else {
+                    // 其他情况，设为空数组
+                    tracks = []
+                  }
+                  
+                  return tracks.map((track, index) => (
+                    <p key={index}>{track}</p>
+                  ))
+                })()}
               </div>
             )}
             

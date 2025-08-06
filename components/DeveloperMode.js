@@ -82,32 +82,16 @@ export default function DeveloperMode() {
                 <h3 className={styles.RedFont2}>开发者工具</h3>
                 <div className="dev-tools">
                   <button 
-                    onClick={() => router.push('/admin')}
+                    onClick={() => {
+                      router.push('/admin')
+                      setShowModal(false)
+                    }}
                     style={{
                       ...buttonStyle,
                       backgroundColor: '#4c6ef5'
                     }}
                   >
-                    管理后台
-                  </button>
-                  
-                  <button 
-                    onClick={() => {
-                      // 添加实时编辑功能
-                      const currentUrl = window.location.pathname
-                      if (currentUrl.startsWith('/products/')) {
-                        const slug = currentUrl.split('/products/')[1]
-                        router.push(`/admin?edit=product-pages&slug=${slug}`)
-                      } else {
-                        router.push('/admin')
-                      }
-                    }}
-                    style={{
-                      ...buttonStyle,
-                      backgroundColor: '#51cf66'
-                    }}
-                  >
-                    实时编辑
+                    进入管理后台
                   </button>
                   
                   <button 

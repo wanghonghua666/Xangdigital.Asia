@@ -70,12 +70,27 @@ export default function DynamicProductPage({ pageId, fallbackData, styles }) {
           {pageData.description}
         </p>
         
-        {pageData.trackList && pageData.trackList.length > 0 && (
+        {pageData.trackList && (
           <div className={styles.trackList}>
             <h3>TRACKLIST:</h3>
-            {pageData.trackList.map((track, index) => (
-              <p key={index}>{track}</p>
-            ))}
+            {(() => {
+              // 处理trackList可能是字符串或数组的情况
+              let tracks = pageData.trackList
+              if (typeof tracks === 'string') {
+                // 如果是字符串，按换行符分割
+                tracks = tracks.split('\n').filter(track => track.trim())
+              } else if (Array.isArray(tracks)) {
+                // 如果已经是数组，直接使用
+                tracks = tracks.filter(track => track && track.trim())
+              } else {
+                // 其他情况，设为空数组
+                tracks = []
+              }
+              
+              return tracks.map((track, index) => (
+                <p key={index}>{track}</p>
+              ))
+            })()}
           </div>
         )}
         
