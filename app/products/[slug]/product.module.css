@@ -161,20 +161,59 @@
 }
 
 .buyButtonContainer {
-  /* Shopify Buy Button 容器 */
+  position: relative;
+}
+
+.notifyPanel {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: rgba(0,0,0,0.4);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 8px;
+  animation: fadeIn 300ms ease both;
+}
+
+.notifyInput {
+  width: 100%;
+  max-width: 360px;
+  padding: 0.8rem 1rem;
+  border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(0,0,0,0.3);
+  color: #fff;
+  border-radius: 6px;
+  outline: none;
+  margin-bottom: 0.6rem;
+}
+
+.notifyMessage {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.9rem;
+  color: rgba(255,255,255,0.85);
+  margin-top: 0.5rem;
+  animation: fadeIn 200ms ease both;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-6px); }
 }
 
 .buyButton {
   background: red;
-  color: rgb(156, 163, 175);
+  color: white;
   border: none;
   padding: 1rem 2rem;
   border-radius: 4px;
   font-family: "JetBrains Mono", monospace;
-  font-size: 1.1rem;
+  font-size: 1.5rem;
   font-weight: lighter;
   letter-spacing: 1.4px;
-  transform: scaleY(0.7);
+  transform: scaleY(0.8);
   cursor: pointer;
   transition: color 0.3s ease, background-color 0.3s ease;
   width: 100%;

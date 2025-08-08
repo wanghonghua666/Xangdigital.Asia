@@ -42,6 +42,7 @@ export default function AdminPage() {
     { name: 'description', label: '产品描述', type: 'textarea' },
     { name: 'image', label: '产品图片', type: 'image' },
     { name: 'price', label: '价格', type: 'text' },
+    { name: 'comingSoon', label: 'Coming Soon（开启后显示邮箱订阅）', type: 'checkbox' },
     { name: 'visible', label: '可见性', type: 'checkbox' },
     { name: 'order', label: '排序', type: 'number' },
     { name: 'trackList', label: '曲目列表', type: 'textarea', placeholder: '每行一个曲目，如：A1 · HAPPY BOY' },
@@ -107,9 +108,10 @@ export default function AdminPage() {
     description: "专辑描述...",
     image: "/cd/album-art.png",
     price: "€20.00",
+    comingSoon: false,
     trackList: "A1 · 曲目一\nA2 · 曲目二",
-    visible: true, // 添加可见性字段
-    order: 1, // 添加排序字段
+    visible: true,
+    order: 1,
     details: {
       catalog: "NEW001",
       album: "新专辑",

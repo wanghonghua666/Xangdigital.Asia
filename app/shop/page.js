@@ -11,6 +11,7 @@ export default function Shop() {
   const [productPages, setProductPages] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [isMobile, setIsMobile] = useState(false)
+  const [showFadeIn, setShowFadeIn] = useState(true)
 
   useEffect(() => {
     // 检测移动端
@@ -78,8 +79,14 @@ export default function Shop() {
 
     loadProducts()
 
+    // 页面加载完成后隐藏fadeIn效果
+    const timer = setTimeout(() => {
+      setShowFadeIn(false)
+    }, 1500)
+
     return () => {
       window.removeEventListener("resize", checkMobile)
+      clearTimeout(timer)
     }
   }, [])
 
@@ -112,6 +119,7 @@ export default function Shop() {
       </Head>
 
       <div className={styles.wrapper}>
+        {showFadeIn && <div className={styles.fadeIn}></div>}
         <div className={styles.overlay}></div>
 
         <header className={styles.header}>

@@ -3,7 +3,7 @@
 import { useState, useEffect, use } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { getProductPage } from "../../../lib/firebaseService"
+import { getProductPage, addProductInterest } from "../../../lib/firebaseService"
 import styles from "./product.module.css"
 
 export default function DynamicProductPage({ params }) {
@@ -11,12 +11,31 @@ export default function DynamicProductPage({ params }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [backUrl, setBackUrl] = useState("/")
+  const [showNotify, setShowNotify] = useState(false)
+  const [notifyEmail, setNotifyEmail] = useState("")
+  const [notifyMsg, setNotifyMsg] = useState("")
   
   // 使用React.use()解包params
   const resolvedParams = use(params)
   const slug = resolvedParams.slug
   const router = useRouter()
   const searchParams = useSearchParams()
+
+  const handleNotifySubmit = async () => {
+    try {
+      if (!notifyEmail || !notifyEmail.includes('@')) {
+        setNotifyMsg('Enter Email 4 Notify')
+        return
+      }
+      const res = await addProductInterest({ productId: slug, email: notifyEmail })
+      setNotifyMsg(res?.duplicate ? 'You have already subscribed' : 'Thank You')
+      setNotifyEmail('')
+      console.log(`✅ [PRODUCT_PAGE] 收到订阅: ${slug} -> ${notifyEmail}`)
+    } catch (e) {
+      console.error('❌ [PRODUCT_PAGE] 提交订阅失败', e)
+      setNotifyMsg('Submit Failed, Please Try Again')
+    }
+  }
 
   useEffect(() => {
     // 智能返回导航逻辑
@@ -213,11 +232,43 @@ export default function DynamicProductPage({ params }) {
               <span className={styles.price}>{pageData.price}</span>
             </div>
             
-            {/* Shopify Buy Button 预留位置 */}
+            {/* 购买/订阅逻辑 */}
             <div className={styles.buyButtonContainer}>
-              <button className={styles.buyButton}>
-                ADD TO CART
-              </button>
+              {pageData.comingSoon ? (
+  <div>
+    <button className={styles.buyButton} onClick={() => setShowNotify(true)}>
+      SOON
+    </button>
+    {showNotify && (
+      <div className={styles.notifyPanel}>
+        <input
+          className={styles.notifyInput}
+          type="email"
+          placeholder="Enter Email 4 Notify"
+          value={notifyEmail}
+          onChange={(e) => setNotifyEmail(e.target.value)}
+        />
+        <button className={styles.buyButton} onClick={async () => {
+          await handleNotifySubmit()
+          // 1.5s后淡出并关闭
+          setTimeout(() => {
+            setShowNotify(false)
+            setNotifyMsg("")
+          }, 1500)
+        }}>
+          Submit
+        </button>
+        {notifyMsg && (
+          <p className={styles.notifyMessage}>{notifyMsg}</p>
+        )}
+      </div>
+    )}
+  </div>
+) : (
+  <button className={styles.buyButton}>
+    ADD TO CART
+  </button>
+)}
             </div>
           </div>
         </div>

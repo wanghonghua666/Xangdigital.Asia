@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { productsManager, cdsManager, productPagesManager } from "../lib/firebaseService"
+import { productsManager, cdsManager, productPagesManager, getProductInterestsCount, getProductInterests } from "../lib/firebaseService"
 
 // 统一数据管理组件
 export default function UnifiedDataManager({ 
@@ -138,22 +138,41 @@ export default function UnifiedDataManager({
             <div style={cardContentStyle}>
               <h3 style={cardTitleStyle}>{item.title || item.name || `项目 ${item.id || item.firestoreId}`}</h3>
               {item.price && <p style={cardTextStyle}>价格: {item.price}</p>}
+              {item.comingSoon && <p style={cardTextStyle}>状态: Coming Soon（收集订阅）</p>}
               {item.description && <p style={cardTextStyle}>{item.description}</p>}
-              <p style={cardTextStyle}>状态: {item.visible ? '显示' : '隐藏'}</p>
-              <div style={cardActionsStyle}>
-                <button 
-                  onClick={() => setEditingItem(item)}
-                  style={editButtonStyle}
-                >
-                  编辑
-                </button>
-                <button 
-                  onClick={() => handleDelete(item.firestoreId || item.id)}
-                  style={deleteButtonStyle}
-                >
-                  删除
-                </button>
-              </div>
+              <p style={cardTextStyle}>可见性: {item.visible ? '显示' : '隐藏'}</p>
+                              <div style={cardActionsStyle}>
+                  <button 
+                    onClick={() => setEditingItem(item)}
+                    style={editButtonStyle}
+                  >
+                    编辑
+                  </button>
+                  {type === 'product-pages' && (
+                    <button 
+                      onClick={async () => {
+                        const id = item.firestoreId || item.id
+                        console.log('🔍 [ADMIN] 查询订阅:', id)
+                        const list = await getProductInterests(id)
+                        if (!list || list.length === 0) {
+                          alert('暂无订阅')
+                          return
+                        }
+                        const emails = Array.from(new Set(list.map(x => x.email)))
+                        alert(`订阅人数: ${emails.length}\n\n` + emails.join('\n'))
+                      }}
+                      style={editButtonStyle}
+                    >
+                      查看订阅
+                    </button>
+                  )}
+                  <button 
+                    onClick={() => handleDelete(item.firestoreId || item.id)}
+                    style={deleteButtonStyle}
+                  >
+                    删除
+                  </button>
+                </div>
             </div>
           </div>
         ))}

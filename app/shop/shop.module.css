@@ -24,6 +24,21 @@
   z-index: 0;
 }
 
+.fadeIn {
+  position: fixed;
+  inset: 0;
+  background-color: black;
+  z-index: 9999;
+  animation: fadeOut 1.5s ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes fadeOut {
+  0% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
 .header {
   position: fixed;
   top: 9px;

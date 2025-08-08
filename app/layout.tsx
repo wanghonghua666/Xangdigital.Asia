@@ -3,8 +3,7 @@ import './globals.css'
 
 export const metadata: Metadata = {
   title: 'XANGDIGITAL.ASIA',
-  description: 'Xangdigital Music Platform',
-  generator: 'v0.dev',
+  description: 'Xang_digital',
   icons: {
     icon: '/favicon.png',
     shortcut: '/favicon.png',
