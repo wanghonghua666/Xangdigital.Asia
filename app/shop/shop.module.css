@@ -237,20 +237,25 @@
   }
   
   .productsGrid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
   }
   
   .productImage {
-    height: 250px;
+    height: 200px;
+  }
+  
+  .productImage img {
+    width: 100%;
+    height: auto;
   }
   
   .productTitle {
-    font-size: 1.1rem;
+    font-size: 0.9rem;
   }
   
   .productPrice {
-    font-size: 1rem;
+    font-size: 0.8rem;
   }
 }
 
@@ -273,18 +278,24 @@
   }
   
   .productsGrid {
+    grid-template-columns: repeat(2, 1fr);
     gap: 0.5rem;
   }
   
   .productImage {
-    height: 200px;
+    height: 150px;
+  }
+  
+  .productImage img {
+    width: 100%;
+    height: auto;
   }
   
   .productTitle {
-    font-size: 1rem;
+    font-size: 0.8rem;
   }
   
   .productPrice {
-    font-size: 0.9rem;
+    font-size: 0.7rem;
   }
 } 
