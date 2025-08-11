@@ -313,9 +313,14 @@
     letter-spacing: 1.2px;
   }
   
+  .shopSection {
+    padding: 0 0.5rem; /* 添加左右内边距 */
+  }
+  
   .productsGrid {
     grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
+    padding: 0 0.5rem; /* 添加左右内边距 */
   }
   
   .productImage {
@@ -358,9 +363,14 @@
     margin-bottom: 1.5rem;
   }
   
+  .shopSection {
+    padding: 0 0.75rem; /* 增加左右内边距 */
+  }
+  
   .productsGrid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 0.5rem;
+    gap: 0.75rem; /* 增加商品间距，约为CD大小的1/4 */
+    padding: 0 0.75rem; /* 与gap相同的左右内边距 */
   }
   
   .productImage {
@@ -368,8 +378,10 @@
   }
   
   .productImage img {
-    width: 100%;
+    width: 90%; /* 稍微缩小图片，留出更多空间 */
     height: auto;
+    margin: 0 auto;
+    display: block;
   }
   
   .productTitle {
@@ -390,5 +402,37 @@
     font-size: 1.3rem;
     letter-spacing: 1.5px;
     padding: 0.8rem 1.5rem;
+  }
+}
+
+/* 针对iPhone等小屏幕设备的特殊优化 */
+@media (max-width: 375px) {
+  .shopSection {
+    padding: 0 1rem; /* 进一步增加左右内边距 */
+  }
+  
+  .productsGrid {
+    gap: 1rem; /* 进一步增加商品间距 */
+    padding: 0 1rem; /* 与gap相同的左右内边距 */
+  }
+  
+  .productImage img {
+    width: 85%; /* 进一步缩小图片 */
+  }
+}
+
+/* 针对超小屏幕设备的优化 */
+@media (max-width: 320px) {
+  .shopSection {
+    padding: 0 1.25rem;
+  }
+  
+  .productsGrid {
+    gap: 1.25rem;
+    padding: 0 1.25rem;
+  }
+  
+  .productImage img {
+    width: 80%;
   }
 } 
