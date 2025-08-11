@@ -14,6 +14,7 @@ export default function DynamicProductPage({ params }) {
   const [showNotify, setShowNotify] = useState(false)
   const [notifyEmail, setNotifyEmail] = useState("")
   const [notifyMsg, setNotifyMsg] = useState("")
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   
   // 使用React.use()解包params
   const resolvedParams = use(params)
@@ -101,22 +102,30 @@ export default function DynamicProductPage({ params }) {
           })
           setPageData(data)
         } else {
-          console.log(`❌ [PRODUCT_PAGE] 产品不存在: ${slug}`)
-          setError('产品不存在')
+          console.log(`❌ [PRODUCT_PAGE] 产品页面数据无效或为空`)
+          setError('Product not found')
         }
       } catch (error) {
-        console.error(`❌ [PRODUCT_PAGE] 动态产品页面加载失败: ${slug}`, error)
-        setError(error.message)
+        console.error(`❌ [PRODUCT_PAGE] 加载产品页面数据失败:`, error)
+        setError('Failed to load product')
       } finally {
         setLoading(false)
-        console.log(`✅ [PRODUCT_PAGE] 产品页面数据加载完成`)
+        console.log(`✅ [PRODUCT_PAGE] 产品页面数据加载流程完成`)
       }
     }
 
-    if (slug) {
-      loadPageData()
-    }
+    loadPageData()
   }, [slug])
+
+  // 移动端菜单切换
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!mobileMenuOpen)
+  }
+
+  // 关闭移动端菜单
+  const closeMobileMenu = () => {
+    setMobileMenuOpen(false)
+  }
 
   if (loading) {
     return (
@@ -131,7 +140,7 @@ export default function DynamicProductPage({ params }) {
         <main className={styles.main}>
           <div className={styles.productContainer}>
             <div style={{ textAlign: 'center', padding: '2rem', color: '#666' }}>
-              加载中...
+              <h2>加载中...</h2>
             </div>
           </div>
         </main>
@@ -173,12 +182,56 @@ export default function DynamicProductPage({ params }) {
           ← BACK
         </Link>
         <h1 className={styles.siteTitle}>XANGDIGITAL.ASIA</h1>
+        
+        {/* 移动端菜单按钮 */}
+        <button 
+          className={`${styles.mobileMenuButton} ${mobileMenuOpen ? styles.active : ''}`}
+          onClick={toggleMobileMenu}
+          aria-label="Toggle mobile menu"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
       </header>
+
+      {/* 移动端菜单 */}
+      <div className={`${styles.mobileMenu} ${mobileMenuOpen ? styles.active : ''}`}>
+        <a href="/#work" className={styles.mobileMenuItem} onClick={closeMobileMenu}>
+          WORK
+        </a>
+        <Link href="/shop" className={styles.mobileMenuItem} onClick={closeMobileMenu}>
+          SHOP
+        </Link>
+      </div>
 
       <main className={styles.main}>
         <div className={styles.productContainer}>
           <div className={styles.productImage}>
-            <img src={pageData.image} alt={pageData.title} />
+            <img 
+              src={pageData.image} 
+              alt={pageData.title}
+              onError={(e) => {
+                console.warn('🖼️ 产品图片加载失败:', e.target.src)
+                // 尝试修复路径
+                const fileName = e.target.src.split('/').pop()
+                if (fileName) {
+                  const alternativePaths = [
+                    `/cd/${fileName}`,
+                    `/product/${fileName}`,
+                    `/products/${fileName}`,
+                    `/${fileName}`,
+                    '/placeholder.svg'
+                  ]
+                  
+                  const currentIndex = alternativePaths.indexOf(e.target.src)
+                  const nextPath = alternativePaths[currentIndex + 1] || '/placeholder.svg'
+                  e.target.src = nextPath
+                } else {
+                  e.target.src = '/placeholder.svg'
+                }
+              }}
+            />
           </div>
           
           <div className={styles.productInfo}>

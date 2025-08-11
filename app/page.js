@@ -109,6 +109,7 @@ export default function Home() {
   const [isMobile, setIsMobile] = useState(false)
   const [cdsLoaded, setCdsLoaded] = useState(false)
   const [animationInitialized, setAnimationInitialized] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   useEffect(() => {
     // 移动端检测
@@ -152,7 +153,7 @@ export default function Home() {
             // 使用CSS自定义属性，不干扰hover效果
             img.style.setProperty('--dynamic-scale', scale)
             img.style.setProperty('--dynamic-opacity', opacity)
-            img.style.transition = 'all 0.3s ease'
+            img.style.transition = 'all 0.5s ease' // 减慢动画速度
             
             // 判断是否为中心CD，给中心CD添加特殊类名
             const isCenter = distance < 50
@@ -167,6 +168,7 @@ export default function Home() {
             // 清除之前的事件
             img.onclick = null
             
+            // 统一移动端和桌面端的交互方式：都使用点击式
             if (!isCenter) {
               // 非中心CD点击后滚动到中心
               img.onclick = (e) => {
@@ -225,11 +227,11 @@ export default function Home() {
       const handleScroll = () => {
         updateCDs()
         
-        // 防抖动的自动吸附
+        // 防抖动的自动吸附 - 减慢动画速度
         clearTimeout(scrollTimeout)
         scrollTimeout = setTimeout(() => {
           snapToCenter()
-        }, 150)
+        }, 300) // 从150ms增加到300ms
       }
 
       // 键盘导航
@@ -349,6 +351,16 @@ export default function Home() {
     setCdsLoaded(loaded)
   }
 
+  // 移动端菜单切换
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!mobileMenuOpen)
+  }
+
+  // 关闭移动端菜单
+  const closeMobileMenu = () => {
+    setMobileMenuOpen(false)
+  }
+
   return (
     <>
       <Head>
@@ -362,6 +374,8 @@ export default function Home() {
 
         <header className={styles.header}>
           <h1 className={styles.siteTitle}>XANGDIGITAL.ASIA</h1>
+          
+          {/* 桌面端导航 */}
           <nav className={styles.guidebar}>
             <a href="#work" className={styles.guidebarItem}>
               WORK
@@ -370,7 +384,28 @@ export default function Home() {
               SHOP
             </Link>
           </nav>
+
+          {/* 移动端菜单按钮 */}
+          <button 
+            className={`${styles.mobileMenuButton} ${mobileMenuOpen ? styles.active : ''}`}
+            onClick={toggleMobileMenu}
+            aria-label="Toggle mobile menu"
+          >
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
         </header>
+
+        {/* 移动端菜单 */}
+        <div className={`${styles.mobileMenu} ${mobileMenuOpen ? styles.active : ''}`}>
+          <a href="#work" className={styles.mobileMenuItem} onClick={closeMobileMenu}>
+            WORK
+          </a>
+          <Link href="/shop" className={styles.mobileMenuItem} onClick={closeMobileMenu}>
+            SHOP
+          </Link>
+        </div>
 
         <main className={styles.main}>
           <h1 className={styles.RedFont2}>MUSIC</h1>

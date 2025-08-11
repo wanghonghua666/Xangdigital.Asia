@@ -83,6 +83,80 @@
   color: white;
 }
 
+/* === Mobile Menu === */
+.mobileMenuButton {
+  display: none;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 24px;
+  height: 18px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  z-index: 1001;
+}
+
+.mobileMenuButton span {
+  width: 100%;
+  height: 2px;
+  background-color: red;
+  transition: all 0.3s ease;
+  transform-origin: center;
+}
+
+.mobileMenuButton.active span:nth-child(1) {
+  transform: rotate(45deg) translate(5px, 5px);
+}
+
+.mobileMenuButton.active span:nth-child(2) {
+  opacity: 0;
+}
+
+.mobileMenuButton.active span:nth-child(3) {
+  transform: rotate(-45deg) translate(7px, -6px);
+}
+
+.mobileMenu {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.95);
+  z-index: 1000;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  backdrop-filter: blur(10px);
+}
+
+.mobileMenu.active {
+  display: flex;
+}
+
+.mobileMenuItem {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 1.5rem;
+  font-weight: lighter;
+  color: red;
+  letter-spacing: 2px;
+  transform: scaleY(0.8);
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 1rem 2rem;
+  border: 1px solid transparent;
+}
+
+.mobileMenuItem:hover {
+  color: white;
+  border-color: red;
+  transform: scaleY(0.8) scale(1.05);
+}
+
 /* === Main Content === */
 
 .main {
@@ -261,11 +335,11 @@
   }
   
   .guidebar {
-    gap: 1rem;
+    display: none; /* 隐藏桌面导航 */
   }
   
-  .guidebarItem {
-    font-size: 0.9rem;
+  .mobileMenuButton {
+    display: flex; /* 显示移动端菜单按钮 */
   }
   
   .cdSection {
@@ -286,6 +360,18 @@
   .cdImage.center-cd:hover {
     transform: scale(1.05);
   }
+  
+  .aboutSection {
+    max-width: 90vw;
+    margin: 2rem auto;
+    padding: 1rem;
+  }
+  
+  .contactSection {
+    max-width: 90vw;
+    margin: 2rem auto;
+    padding: 1rem;
+  }
 }
 
 @media (max-width: 480px) {
@@ -293,14 +379,6 @@
     font-size: 0.9rem;
     letter-spacing: 10px;
     transform: scaleY(1.2);
-  }
-  
-  .guidebar {
-    gap: 0.8rem;
-  }
-  
-  .guidebarItem {
-    font-size: 0.7rem;
   }
   
   .cdSection {
@@ -349,5 +427,11 @@
     line-height: 1.3 !important;
     text-align: left !important;
     max-width: none !important;
+  }
+  
+  .mobileMenuItem {
+    font-size: 1.3rem;
+    letter-spacing: 1.5px;
+    padding: 0.8rem 1.5rem;
   }
 }

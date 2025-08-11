@@ -61,37 +61,46 @@ export default function AdminPage() {
   ]
 
   // 动态获取public文件夹中的图片
-  const getPublicImages = () => {
+  const [publicImages, setPublicImages] = useState([])
+
+  const getPublicImages = async () => {
     console.log(`🖼️ [ADMIN] 获取公共图片列表...`)
-    const images = [
-      // CD图片
-      '/cd/album-art.png',
-      '/cd/album-cover.png',
-      '/cd/cd-empty-1.png',
-      '/cd/cd-placeholder-1.png',
-      '/cd/cd-placeholder-2.png',
-      '/cd/cd-placeholder-3.png',
-      '/cd/Nia.jpg',
-      
-      // Product图片
-      '/product/album-art-1.jpeg',
-      '/product/album-cover-main.jpeg',
-      
-      // Products图片
-      '/products/placeholder.jpg',
-      
-      // 根目录图片
-      '/placeholder.svg',
-      '/placeholder.jpg',
-      '/placeholder-logo.png',
-      '/placeholder-logo.svg',
-      '/placeholder-user.jpg',
-      '/header-image.jpg',
-      '/header-image2.jpg',
-      '/header-image3.jpg'
-    ]
-    console.log(`✅ [ADMIN] 公共图片列表获取完成，共 ${images.length} 张图片`)
-    return images
+    try {
+      const response = await fetch('/api/images', { cache: 'no-store' })
+      if (!response.ok) throw new Error(`HTTP ${response.status}`)
+      const list = await response.json()
+      if (Array.isArray(list) && list.length >= 0) {
+        console.log(`✅ [ADMIN] 公共图片列表获取完成，共 ${list.length} 张图片`)
+        setPublicImages(list)
+        return list
+      }
+      throw new Error('Invalid images payload')
+    } catch (error) {
+      console.error(`❌ [ADMIN] 获取图片列表出错:`, error)
+      // 返回备用图片列表
+      const fallbackImages = [
+        '/cd/album-art.png',
+        '/cd/album-cover.png',
+        '/cd/cd-empty-1.png',
+        '/cd/cd-placeholder-1.png',
+        '/cd/cd-placeholder-2.png',
+        '/cd/cd-placeholder-3.png',
+        '/cd/Nia.jpg',
+        '/product/album-art-1.jpeg',
+        '/product/album-cover-main.jpeg',
+        '/products/placeholder.jpg',
+        '/placeholder.svg',
+        '/placeholder.jpg',
+        '/placeholder-logo.png',
+        '/placeholder-logo.svg',
+        '/placeholder-user.jpg',
+        '/header-image.jpg',
+        '/header-image2.jpg',
+        '/header-image3.jpg'
+      ]
+      setPublicImages(fallbackImages)
+      return fallbackImages
+    }
   }
 
   // 默认数据
@@ -147,6 +156,9 @@ export default function AdminPage() {
     console.log(`🔄 [ADMIN] 开始加载 ${tab} 数据...`)
     setLoading(true)
     try {
+      // 加载公共图片列表（每次尝试刷新，确保新增能被看到）
+      await getPublicImages()
+      
       if (tab === "cds" && cds.length === 0) {
         console.log(`📀 [ADMIN] 开始加载CD数据...`)
         const cdsData = await getAllCDs().catch(err => {
@@ -279,7 +291,7 @@ export default function AdminPage() {
           title="CD"
           fields={cdFields}
           defaultData={defaultCD}
-          availableImages={getPublicImages()}
+          availableImages={publicImages}
           onDataChange={() => {
             clearCache()
             loadData("cds")
@@ -294,7 +306,7 @@ export default function AdminPage() {
           title="产品页面"
           fields={productPageFields}
           defaultData={defaultProductPage}
-          availableImages={getPublicImages()}
+          availableImages={publicImages}
           onDataChange={() => {
             clearCache()
             loadData("product-pages")

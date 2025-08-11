@@ -32,10 +32,15 @@ export default function DynamicCDs({ isMobile, mobileCdItemStyle, desktopCdItemS
   const fixImagePath = (imagePath) => {
     if (!imagePath) return '/placeholder.svg'
     
+    // 确保路径以/开头
+    if (!imagePath.startsWith('/')) {
+      imagePath = '/' + imagePath
+    }
+    
     // 如果路径不以/cd/开头但是引用了已知CD图片，则修复路径
     if (!imagePath.startsWith('/cd/')) {
       const fileName = imagePath.split('/').pop()
-      const knownImages = ['album-art.png', 'album-cover.png', 'cd-empty-1.png', 'cd-placeholder-1.png', 'cd-placeholder-2.png', 'cd-placeholder-3.png']
+      const knownImages = ['album-art.png', 'album-cover.png', 'cd-empty-1.png', 'cd-placeholder-1.png', 'cd-placeholder-2.png', 'cd-placeholder-3.png', 'Nia.jpg']
       
       if (knownImages.includes(fileName)) {
         return `/cd/${fileName}`
@@ -198,7 +203,23 @@ export default function DynamicCDs({ isMobile, mobileCdItemStyle, desktopCdItemS
                   if (fixedSrc !== e.target.src) {
                     e.target.src = fixedSrc
                   } else {
-                    e.target.src = '/placeholder.svg'
+                    // 如果还是失败，尝试其他可能的路径
+                    const fileName = e.target.src.split('/').pop()
+                    if (fileName) {
+                      const alternativePaths = [
+                        `/cd/${fileName}`,
+                        `/product/${fileName}`,
+                        `/products/${fileName}`,
+                        `/${fileName}`
+                      ]
+                      
+                      // 尝试下一个路径
+                      const currentIndex = alternativePaths.indexOf(e.target.src)
+                      const nextPath = alternativePaths[currentIndex + 1] || '/placeholder.svg'
+                      e.target.src = nextPath
+                    } else {
+                      e.target.src = '/placeholder.svg'
+                    }
                   }
                 }}
               />

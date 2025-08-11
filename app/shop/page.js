@@ -12,6 +12,7 @@ export default function Shop() {
   const [isLoading, setIsLoading] = useState(true)
   const [isMobile, setIsMobile] = useState(false)
   const [showFadeIn, setShowFadeIn] = useState(true)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   useEffect(() => {
     // 检测移动端
@@ -111,6 +112,16 @@ export default function Shop() {
     }
   }
 
+  // 移动端菜单切换
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!mobileMenuOpen)
+  }
+
+  // 关闭移动端菜单
+  const closeMobileMenu = () => {
+    setMobileMenuOpen(false)
+  }
+
   return (
     <>
       <Head>
@@ -124,6 +135,8 @@ export default function Shop() {
 
         <header className={styles.header}>
           <h1 className={styles.siteTitle}>XANGDIGITAL.ASIA</h1>
+          
+          {/* 桌面端导航 */}
           <nav className={styles.guidebar}>
             <a href="/#work" className={styles.guidebarItem}>
               WORK
@@ -132,7 +145,28 @@ export default function Shop() {
               SHOP
             </Link>
           </nav>
+
+          {/* 移动端菜单按钮 */}
+          <button 
+            className={`${styles.mobileMenuButton} ${mobileMenuOpen ? styles.active : ''}`}
+            onClick={toggleMobileMenu}
+            aria-label="Toggle mobile menu"
+          >
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
         </header>
+
+        {/* 移动端菜单 */}
+        <div className={`${styles.mobileMenu} ${mobileMenuOpen ? styles.active : ''}`}>
+          <a href="/#work" className={styles.mobileMenuItem} onClick={closeMobileMenu}>
+            WORK
+          </a>
+          <Link href="/shop" className={styles.mobileMenuItem} onClick={closeMobileMenu}>
+            SHOP
+          </Link>
+        </div>
 
         <main className={styles.main}>
           <h1 className={styles.worktitle}>SHOP</h1>
