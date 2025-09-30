@@ -4,13 +4,15 @@
   position: relative;
   min-height: 100vh;
   background: url("/header-image.jpg") no-repeat center top;
-  background-size: cover; /* 等比缩放填满容器 */
-  background-position: center top; /* 保持居中显示 */
+  background-size: cover;         /* 等比缩放填满 */
+  background-position: center top;
+  background-attachment: fixed;   /* 固定背景，不随内容拉伸 */
   font-family: "JetBrains Mono", monospace;
   overflow: hidden;
   width: 100%;
   max-width: 100vw;
 }
+
 
 .overlay {
   position: absolute;
