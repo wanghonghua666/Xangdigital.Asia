@@ -4,7 +4,8 @@
   position: relative;
   min-height: 100vh;
   background: url("/header-image.jpg") no-repeat center top;
-  background-size: 100% 100%;
+  background-size: cover; /* 等比缩放填满容器 */
+  background-position: center top; /* 保持居中显示 */
   font-family: "JetBrains Mono", monospace;
   overflow: hidden;
   width: 100%;
