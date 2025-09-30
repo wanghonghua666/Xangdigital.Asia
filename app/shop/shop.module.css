@@ -2,9 +2,11 @@
 
 .wrapper {
   position: relative;
-  min-height: 100vh;
+  height: 100vh;  /* 固定高度为一屏，不再用 min-height */
   background: url("/header-image2.jpg") no-repeat center top;
-  background-size: 100% 100%;
+  background-size: cover;          /* 等比缩放填满一屏 */
+  background-position: center top; /* 对齐位置 */
+  background-attachment: fixed;    /* 背景固定，不随内容拉伸 */
   font-family: "JetBrains Mono", monospace;
   overflow-x: hidden;
 }
